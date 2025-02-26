@@ -17,7 +17,7 @@ This resource allows you to manage nodes on your e2e clusters. When applied, a n
  resource "e2e_node" "node1" {
 	name               = "node_name"
     location           = "Delhi"
-    plan               = "C2.12GB"
+    plan               = "C3.8GB"
     image              = "CentOS-7"
     project_id         = <project_id:string>
     security_group_ids = [10001, 10002, 10018] //Just an example
@@ -30,7 +30,7 @@ This resource allows you to manage nodes on your e2e clusters. When applied, a n
 
 - `image` : (Required)(String) The name of the image you have selected format 
 - `name` : (Required)(String) The name of the resource, also acts as it's unique ID
-- `plan` : (Required)(String) name of the Plan
+- `plan` : (Required)(String) The name of the Plan. To find the available plan names, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/images-os-category/get).
 - `location` : (Optional) (String) Location where node is to be launched.
 - `project_id` (Required) (String) The ID of the project associated with the node
 - `region` : (Optional) (String) region
