@@ -66,7 +66,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 - `lb_mode` (String) In which mode load balancer is going to launch http, https, both
 - `lb_name` (String) It is the name of load balancer, letter,digit,underscore,hyphen are allowed
 - `plan_name` (String) It is the plan of which load balancer is going to launch
-- `project_id` (String) This is your project ID in which you want to create the resource.
+- `project_id` (String) This is your project ID in which you want to create the resource. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 -   Either `Backend` or `Tcp Backend` is required. Details are mentioned below.
 -   `NOTE` - ACl list and ACL map are not allowed with TCP backend. 
 ### Optional

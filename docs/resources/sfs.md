@@ -35,7 +35,7 @@ Provides an e2e node resource. provides an on-demand, scalable, and high-perform
 - `disk_size` (Number) size of disk to be created
 - `name` (String) The name of the resource, also acts as it's unique ID
 - `plan` (String) Details  of the Plan
-- `project_id` (String) size of disk to be created
+- `project_id` (String) project id associated with the sfs. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `vpc_id` (String) virtual private cloud id of sfs
 
 ### Optional
