@@ -339,6 +339,7 @@ func resourceCreateNode(ctx context.Context, d *schema.ResourceData, m interface
 		Is_saved_image:    d.Get("is_saved_image").(bool),
 		Reserve_ip:        d.Get("reserve_ip").(string),
 		Vpc_id:            d.Get("vpc_id").(string),
+		Saved_image_template_id: d.Get("saved_image_template_id").(int),
 		Security_group_id: security_group,
 		SSH_keys:          d.Get("ssh_keys").([]interface{}),
 		Start_scripts:     GetStartScripts(d.Get("start_script").(string)),
