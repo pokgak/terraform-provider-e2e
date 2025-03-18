@@ -65,7 +65,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 
 - `lb_mode` (String) In which mode load balancer is going to launch http, https, both
 - `lb_name` (String) It is the name of load balancer, letter,digit,underscore,hyphen are allowed
-- `plan_name` (String) It is the plan of which load balancer is going to launch
+- `plan_name` (String) It is the plan of which load balancer is going to launch. To find the plan name, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/appliance-type/get)
 - `project_id` (String) This is your project ID in which you want to create the resource. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 -   Either `Backend` or `Tcp Backend` is required. Details are mentioned below.
 -   `NOTE` - ACl list and ACL map are not allowed with TCP backend. 
@@ -83,7 +83,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 - `node_list_type` (String) It is used to find out either node is static(S) or dynamic autoscaling(D)
 - `power_status` (String) power_on to start the load balancer and power_off to power off the load balancer
 - `tcp_backend` (Block List) Need Information of TCP backend If user wants to attach (see [below for nested schema](#nestedblock--tcp_backend))
-- `vpc_list` (Set of Number) List of vpc Id which you want to attach
+- `vpc_list` (Set of Number) List of vpc Id which you want to attach. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
 
 ### Read-Only
 
