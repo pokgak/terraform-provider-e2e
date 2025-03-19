@@ -133,7 +133,7 @@ Optional:
 - `checkbox_enable` (Boolean) This checkbox is to enable healthcheck
 - `domain_name` (String) domain name for healthcheck
 - `http_check` (Boolean) Check if http health check in enable
-- `scaler_id` (String) Need scalar ID if you want to attach autoscaling
+- `scaler_id` (String) Need scalar ID if you want to attach autoscaling. To find scaler id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/scaler-scalegroups/get).
 - `scaler_port` (String) Need scalar port if you want to attach autoscaling
 - `servers` (Block List) description of servers that are going to attach on backend (see [below for nested schema](#nestedblock--backends--servers))
 
@@ -142,7 +142,7 @@ Optional:
 
 Required:
 
-- `id` (String) Node id which you want to attach
+- `id` (String) Node id which you want to attach. To find node id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/nodes/get).
 - `port` (String) Port Number of the node
 
 
@@ -176,5 +176,5 @@ Required:
 
 Required:
 
-- `id` (String) Node id which you want to attach
+- `id` (String) Node id which you want to attach. To find node id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/nodes/get).
 - `port` (String) Port Number of the node
