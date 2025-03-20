@@ -65,8 +65,8 @@ resource "e2e_vpc" "VPC-TS-01" {
 
 - `lb_mode` (String) In which mode load balancer is going to launch http, https, both
 - `lb_name` (String) It is the name of load balancer, letter,digit,underscore,hyphen are allowed
-- `plan_name` (String) It is the plan of which load balancer is going to launch
-- `project_id` (String) This is your project ID in which you want to create the resource.
+- `plan_name` (String) It is the plan of which load balancer is going to launch. To find the plan name, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/appliance-type/get)
+- `project_id` (String) This is your project ID in which you want to create the resource. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 -   Either `Backend` or `Tcp Backend` is required. Details are mentioned below.
 -   `NOTE` - ACl list and ACL map are not allowed with TCP backend. 
 ### Optional
@@ -83,7 +83,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 - `node_list_type` (String) It is used to find out either node is static(S) or dynamic autoscaling(D)
 - `power_status` (String) power_on to start the load balancer and power_off to power off the load balancer
 - `tcp_backend` (Block List) Need Information of TCP backend If user wants to attach (see [below for nested schema](#nestedblock--tcp_backend))
-- `vpc_list` (Set of Number) List of vpc Id which you want to attach
+- `vpc_list` (Set of Number) List of vpc Id which you want to attach. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
 
 ### Read-Only
 
@@ -133,7 +133,7 @@ Optional:
 - `checkbox_enable` (Boolean) This checkbox is to enable healthcheck
 - `domain_name` (String) domain name for healthcheck
 - `http_check` (Boolean) Check if http health check in enable
-- `scaler_id` (String) Need scalar ID if you want to attach autoscaling
+- `scaler_id` (String) Need scalar ID if you want to attach autoscaling. To find scaler id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/scaler-scalegroups/get).
 - `scaler_port` (String) Need scalar port if you want to attach autoscaling
 - `servers` (Block List) description of servers that are going to attach on backend (see [below for nested schema](#nestedblock--backends--servers))
 
@@ -142,7 +142,7 @@ Optional:
 
 Required:
 
-- `id` (String) Node id which you want to attach
+- `id` (String) Node id which you want to attach. To find node id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/nodes/get).
 - `port` (String) Port Number of the node
 
 
@@ -176,5 +176,5 @@ Required:
 
 Required:
 
-- `id` (String) Node id which you want to attach
+- `id` (String) Node id which you want to attach. To find node id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/nodes/get).
 - `port` (String) Port Number of the node

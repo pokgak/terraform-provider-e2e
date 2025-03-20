@@ -26,7 +26,7 @@ This resource allows you to manage vpc on your e2e clusters. When applied, a new
 
 - `location` (String) location should specified
 - `vpc_name` (String)
-- `project_id` (Required) (String) The ID of the project associated with the vpc
+- `project_id` (Required) (String) The ID of the project associated with the vpc. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 
 ### Read-Only
 

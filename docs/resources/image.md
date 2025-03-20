@@ -25,9 +25,9 @@ This resource allows you to manage images on your e2e clusters. When applied, a 
 
 ### Argument Reference
 
-- `node_id` : (Required)(String) Id of the node you want to create image of
+- `node_id` : (Required)(String) Id of the node you want to create image of. To find the node id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/nodes/get)
 - `name` : (Required)(String) The name of the image.
-- `project_id` : (Required)(String) project id associated to the node.
+- `project_id` : (Required)(String) project id associated to the node. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `location` : (Required)(String) location of the image (Must be same as corresponding node location)
 
 ### Attribute Reference  (read only)

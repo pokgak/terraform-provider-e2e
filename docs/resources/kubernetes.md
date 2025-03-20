@@ -95,9 +95,9 @@ description: |-
 
 - `name` (String) The name of the Kubernetes service
 - `node_pools` (Block List, Min: 1) List of worker node pools (see [below for nested schema](#nestedblock--node_pools))
-- `project_id` (Number) ID of the project. It should be unique
-- `version` (String) Version of the Kubernetes service
-- `vpc_id` (String) VPC ID of the Kubernetes service
+- `project_id` (Number) ID of the project. It should be unique. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
+- `version` (String) Version of the Kubernetes service.
+- `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
 
 ### Optional
 

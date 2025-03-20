@@ -27,7 +27,7 @@ Provides an e2e object-store resource. This resource allows you to manage object
 ### Required
 
 - `name` (String) The name of the bucket, also act as it's unique ID.
-- `project_id` (Number) The My-Account Project where the bucket will be created.
+- `project_id` (Number) The My-Account Project where the bucket will be created. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 
 ### Optional
 
