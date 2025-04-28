@@ -158,9 +158,8 @@ func dataSourceReadSecurityGroups(ctx context.Context, d *schema.ResourceData, m
 }
 
 func flattenSecurityGroups(securityGroupList *[]models.SecurityGroup) []interface{} {
-
 	if securityGroupList != nil {
-		ois := make([]interface{}, len(*securityGroupList), len(*securityGroupList))
+		ois := make([]interface{}, len(*securityGroupList))
 
 		for i, securityGroup := range *securityGroupList {
 			oi := make(map[string]interface{})
@@ -169,21 +168,16 @@ func flattenSecurityGroups(securityGroupList *[]models.SecurityGroup) []interfac
 			oi["description"] = securityGroup.Description
 			oi["is_default"] = securityGroup.Is_default
 
-			rls := make([]interface{}, len(securityGroup.Rules), len(securityGroup.Rules))
+			rls := make([]interface{}, len(securityGroup.Rules))
 			for j, rule := range securityGroup.Rules {
 				rl := make(map[string]interface{})
 				rl["id"] = rule.Id
-				rl["deleted"] = rule.Deleted
 				rl["rule_type"] = rule.Rule_type
-				rl["created_at"] = rule.Created_at
-				rl["updated_at"] = rule.Updated_at
 				rl["protocol_name"] = rule.Protocol_name
 				rl["port_range"] = rule.Port_range
 				rl["network"] = rule.Network
-				rl["is_active"] = rule.Is_active
 				rl["network_cidr"] = rule.Network_cidr
 				rl["network_size"] = rule.Network_size
-				rl["security_group"] = rule.Security_group
 				rls[j] = rl
 			}
 

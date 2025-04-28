@@ -362,29 +362,6 @@ func (c *Client) GetSavedImages(location string, project_id string) (*models.Ima
 	}
 	return &res, nil
 }
-func (c *Client) GetSecurityGroups(project_id int, location string) (*models.SecurityGroupsResponse, error) {
-
-	urlSecurityGroups := c.Api_endpoint + "security_group/"
-	req, err := http.NewRequest("GET", urlSecurityGroups, nil)
-	if err != nil {
-		return nil, err
-	}
-	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
-	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		log.Printf("[INFO] error inside get security groups")
-		return nil, err
-	}
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-	res := models.SecurityGroupsResponse{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		log.Printf("[INFO] inside get security groups | error while unmarshlling")
-		return nil, err
-	}
-	return &res, nil
-}
 
 func (c *Client) GetVpcs(location string, project_id string) (*models.VpcsResponse, error) {
 
