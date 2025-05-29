@@ -78,7 +78,7 @@ func (c *Client) NewNode(item *models.NodeCreate, project_id string, location st
 
 }
 
-func (c *Client) GetNode(nodeId string, project_id string) (map[string]interface{}, error) {
+func (c *Client) GetNode(nodeId string, project_id string, location string) (map[string]interface{}, error) {
 
 	urlNode := c.Api_endpoint + "nodes/" + nodeId + "/"
 	req, err := http.NewRequest("GET", urlNode, nil)
@@ -87,10 +87,11 @@ func (c *Client) GetNode(nodeId string, project_id string) (map[string]interface
 	}
 	log.Printf("[INFO] CLIENT | NODE READ")
 	params := req.URL.Query()
-
+	log.Printf("==================NODE_READ_API_CLIENT | PARAMS PASSED | Location: %s, ProjectID: %s, NodeID: %d==============", location, project_id, nodeId)
 	params.Add("apikey", c.Api_key)
 	params.Add("contact_person_id", "null")
 	params.Add("project_id", project_id)
+	params.Add("location", location)
 	req.URL.RawQuery = params.Encode()
 	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
 	req.Header.Add("Content-Type", "application/json")

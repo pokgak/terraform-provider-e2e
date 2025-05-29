@@ -26,7 +26,7 @@ func ResourceLoadBalancer() *schema.Resource {
 		DeleteContext: resourceDeleteLoadBalancer,
 		Exists:        resourceExistsLoadBalancer,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }
@@ -453,7 +453,7 @@ func CreateLoadBalancerObject(apiClient *client.Client, d *schema.ResourceData) 
 	}
 	tcpBackend, ok := d.GetOk("tcp_backend")
 	if ok {
-		tcpBackendDetail, err := ExpandTcpBackend(tcpBackend.([]interface{}), apiClient, d.Get("project_id").(string))
+		tcpBackendDetail, err := ExpandTcpBackend(tcpBackend.([]interface{}), apiClient, d.Get("project_id").(string), d.Get("location").(string))
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
@@ -464,7 +464,7 @@ func CreateLoadBalancerObject(apiClient *client.Client, d *schema.ResourceData) 
 
 	backends, ok := d.GetOk("backends")
 	if ok {
-		backendDetail, err := ExpandBackends(backends.([]interface{}), apiClient, d.Get("project_id").(string))
+		backendDetail, err := ExpandBackends(backends.([]interface{}), apiClient, d.Get("project_id").(string), d.Get("location").(string))
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
