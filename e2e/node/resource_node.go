@@ -245,7 +245,7 @@ func ResourceNode() *schema.Resource {
 		DeleteContext: resourceDeleteNode,
 		Exists:        resourceExistsNode,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: CustomImportStateFunc,
 		},
 	}
 }
@@ -327,23 +327,23 @@ func resourceCreateNode(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	node := models.NodeCreate{
-		Name:              d.Get("name").(string),
-		Label:             d.Get("label").(string),
-		Plan:              d.Get("plan").(string),
-		Backup:            d.Get("backup").(bool),
-		Image:             d.Get("image").(string),
-		Default_public_ip: d.Get("default_public_ip").(bool),
-		Disable_password:  d.Get("disable_password").(bool),
-		Enable_bitninja:   d.Get("enable_bitninja").(bool),
-		Is_ipv6_availed:   d.Get("is_ipv6_availed").(bool),
-		Is_saved_image:    d.Get("is_saved_image").(bool),
-		Reserve_ip:        d.Get("reserve_ip").(string),
-		Vpc_id:            d.Get("vpc_id").(string),
+		Name:                    d.Get("name").(string),
+		Label:                   d.Get("label").(string),
+		Plan:                    d.Get("plan").(string),
+		Backup:                  d.Get("backup").(bool),
+		Image:                   d.Get("image").(string),
+		Default_public_ip:       d.Get("default_public_ip").(bool),
+		Disable_password:        d.Get("disable_password").(bool),
+		Enable_bitninja:         d.Get("enable_bitninja").(bool),
+		Is_ipv6_availed:         d.Get("is_ipv6_availed").(bool),
+		Is_saved_image:          d.Get("is_saved_image").(bool),
+		Reserve_ip:              d.Get("reserve_ip").(string),
+		Vpc_id:                  d.Get("vpc_id").(string),
 		Saved_image_template_id: d.Get("saved_image_template_id").(int),
-		Security_group_id: security_group,
-		SSH_keys:          d.Get("ssh_keys").([]interface{}),
-		Start_scripts:     GetStartScripts(d.Get("start_script").(string)),
-		Image_id:          image_id,
+		Security_group_id:       security_group,
+		SSH_keys:                d.Get("ssh_keys").([]interface{}),
+		Start_scripts:           GetStartScripts(d.Get("start_script").(string)),
+		Image_id:                image_id,
 	}
 
 	if node.Vpc_id != "" {
@@ -394,7 +394,8 @@ func resourceReadNode(ctx context.Context, d *schema.ResourceData, m interface{}
 	log.Printf("[info] inside node Resource read")
 	nodeId := d.Id()
 	project_id := d.Get("project_id").(string)
-	node, err := apiClient.GetNode(nodeId, project_id)
+	location := d.Get("location").(string)
+	node, err := apiClient.GetNode(nodeId, project_id, location)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			d.SetId("")
@@ -452,7 +453,7 @@ func resourceUpdateNode(ctx context.Context, d *schema.ResourceData, m interface
 		rollbackChanges(d)
 		return diag.Errorf("node in failed state. please reach out to us at cloud-platform@e2enetworks.com")
 	}
-	_, err := apiClient.GetNode(nodeId, project_id)
+	_, err := apiClient.GetNode(nodeId, project_id, location)
 	if err != nil {
 		return diag.Errorf("error finding Item with ID %s", nodeId)
 	}
@@ -665,7 +666,7 @@ func resourceUpdateNode(ctx context.Context, d *schema.ResourceData, m interface
 		prevPlan, currPlan := d.GetChange("plan")
 
 		if d.HasChange("power_status") {
-			waitForPoweringOffOn(m, nodeId, project_id)
+			waitForPoweringOffOn(m, nodeId, project_id, location)
 		}
 
 		log.Printf("[INFO] prevPlan %s, currPlan %s", prevPlan.(string), currPlan.(string))
@@ -686,7 +687,7 @@ func resourceUpdateNode(ctx context.Context, d *schema.ResourceData, m interface
 
 		log.Printf("[INFO] Power_status changeing is = %v", d.HasChange("power_status"))
 		if d.HasChange("power_status") {
-			err := waitForPoweringOffOn(m, nodeId, project_id)
+			err := waitForPoweringOffOn(m, nodeId, project_id, location)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -779,7 +780,8 @@ func resourceExistsNode(d *schema.ResourceData, m interface{}) (bool, error) {
 
 	nodeId := d.Id()
 	project_id := d.Get("project_id").(string)
-	_, err := apiClient.GetNode(nodeId, project_id)
+	location := d.Get("location").(string)
+	_, err := apiClient.GetNode(nodeId, project_id, location)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -791,6 +793,27 @@ func resourceExistsNode(d *schema.ResourceData, m interface{}) (bool, error) {
 	return true, nil
 }
 
+func CustomImportStateFunc(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid ID format: expected project_id/location/resource_id")
+	}
+
+	projectID := parts[0]
+	location := parts[1]
+	nodeID := parts[2]
+
+	// Set the individual fields
+	d.Set("project_id", projectID)
+	d.Set("location", location)
+	d.Set("node_id", nodeID)
+
+	// Use node ID as actual Terraform resource ID
+	d.SetId(nodeID)
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func convertStringToInt(str string) (int, error) {
 	i, err := strconv.Atoi(str)
 	if err != nil {
@@ -799,14 +822,14 @@ func convertStringToInt(str string) (int, error) {
 	return i, nil
 }
 
-func waitForPoweringOffOn(m interface{}, nodeId string, project_id string) error {
+func waitForPoweringOffOn(m interface{}, nodeId string, project_id string, location string) error {
 	apiClient := m.(*client.Client)
 
 	for {
 		// Wait for some time before checking the status again (is Node powered on or off?)
 		time.Sleep(constants.WAIT_TIMEOUT * time.Second)
 
-		nodeInfo, err := apiClient.GetNode(nodeId, project_id)
+		nodeInfo, err := apiClient.GetNode(nodeId, project_id, location)
 		if err != nil {
 			log.Printf("[ERROR] Error getting Node Info inside Plan Upgrade. Error : %s", err)
 			return err
