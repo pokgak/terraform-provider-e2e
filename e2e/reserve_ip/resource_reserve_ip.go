@@ -163,21 +163,20 @@ func resourceReadReserveIP(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.Errorf(res.Message)
 	}
 
-	var result models.ReserveIp
+	var data models.ReserveIp
 
 	for _, item := range res.Data {
 		if item.IPAddress == reserveId {
-			result = item
+			data = item
 			break
 		}
 	}
-	log.Printf("[INFO] FILTER DATA | %+v %T", result, result)
+	log.Printf("[INFO] FILTER DATA | %+v %T", data, data)
 
-	if result.IPAddress == "" {
+	if data.IPAddress == "" {
 		return diag.Errorf("Cannot find reserve_ip with address : %s", reserveId)
 	} else {
 
-		data := result
 		log.Printf("[INFO] ReserveIP READ | BEFORE SETTING DATA %+v, %v, %T =======================", data, data.Status, data.Status)
 		d.Set("ip_address", data.IPAddress)
 		d.Set("status", data.Status)
