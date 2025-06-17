@@ -28,12 +28,12 @@ func (c *Client) AddSshKey(item models.AddSshKey, project_id string) (map[string
 
 	params.Add("apikey", c.Api_key)
 	params.Add("project_id", project_id)
-	params.Add("location", item.Location) // 
+	params.Add("location", item.Location) //
 
 	req.URL.RawQuery = params.Encode()
-// 	//  Log full URL and location
-// log.Printf("[DEBUG] Full request URL: %s", req.URL.String())
-// log.Printf("[DEBUG] Location param in AddSshKey: %s", item.Location)
+	// 	//  Log full URL and location
+	// log.Printf("[DEBUG] Full request URL: %s", req.URL.String())
+	// log.Printf("[DEBUG] Location param in AddSshKey: %s", item.Location)
 
 	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
 	req.Header.Add("Content-Type", "application/json")

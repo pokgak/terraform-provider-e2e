@@ -4,11 +4,12 @@ import (
 	"context"
 	"log"
 	"strconv"
-	"strings"
-	"fmt"
+	
+	
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -52,25 +53,10 @@ func ResourceSshKey() *schema.Resource {
 		Exists:        resourceExistsSshKey,
 
 		Importer: &schema.ResourceImporter{
-			StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				// Import ID format: pk,project_id,location
-				parts := strings.Split(d.Id(), ",")
-				if len(parts) != 3 {
-					return nil, fmt.Errorf("expected import ID in format: pk,project_id,location")
-				}
-				d.SetId(fmt.Sprintf("%s,%s", parts[0], parts[1])) // keep internal ID as pk,project_id
-				if err := d.Set("project_id", parts[1]); err != nil {
-					return nil, err
-				}
-				if err := d.Set("location", parts[2]); err != nil {
-					return nil, err
-				}
-				return []*schema.ResourceData{d}, nil
-			},
+			State: node.CustomImportStateFunc,
 		},
 	}
 }
-
 
 func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
@@ -92,13 +78,9 @@ func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 
 	log.Printf("[INFO] SSH_KEY CREATE | RESPONSE BODY | %+v", res)
 
-	log.Printf("[INFO] Ssh key creation | res = %+v, type = %T", res, res)
 	data := res["data"].(map[string]interface{})
 	ssh_key_id := strconv.FormatFloat(data["pk"].(float64), 'f', 0, 64)
-
-	//  Store composite ID to retain project_id for later
-	d.SetId(fmt.Sprintf("%s,%s", ssh_key_id, project_id))
-
+	d.SetId(ssh_key_id)
 	d.Set("label", data["label"].(string))
 	d.Set("ssh_key", data["ssh_key"].(string))
 	d.Set("timestamp", data["timestamp"].(string))
@@ -108,77 +90,40 @@ func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 	log.Printf("[info] inside SSH key Resource read")
 
-	//  Extract pk and project_id from ID
-	idParts := strings.Split(d.Id(), ",")
-	if len(idParts) != 2 {
-		log.Printf("[ERROR] Invalid ID format in read")
-		d.SetId("")
-		return diags
-	}
-	pk := idParts[0]
-	project_id := idParts[1]
-
-	locationRaw, ok := d.GetOk("location")
-	if !ok {
-		log.Printf("[ERROR] Missing location during read")
-		d.SetId("")
-		return diag.Errorf("Missing location during read")
-	}
-	location := locationRaw.(string)
+	pk := d.Id()
+	project_id := d.Get("project_id").(string)
+	location := d.Get("location").(string)
 
 	res, err := apiClient.GetSshKeys(location, project_id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	
-	log.Printf("[info] SSH Key Resource read | res = %+v", res)
 
-	found := false
 	for _, key := range res.Data {
 		if strconv.Itoa(key.Pk) == pk {
 			d.Set("label", key.Label)
 			d.Set("ssh_key", key.Ssh_key)
 			d.Set("timestamp", key.Timestamp)
-			d.Set("location", location)
-			d.Set("project_id", project_id)
-			found = true
-			break
+			return diags
 		}
 	}
 
-	if !found {
-		log.Printf("[WARN] SSH key with pk=%s not found", pk)
-		d.SetId("")
-	}
-
+	log.Printf("[WARN] SSH key with pk=%s not found", pk)
+	d.SetId("")
 	return diags
-
 }
 
 func resourceDeleteSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 
-	//  Extract pk and project_id from ID
-	idParts := strings.Split(d.Id(), ",")
-	if len(idParts) != 2 {
-		log.Printf("[ERROR] Invalid ID format in delete")
-		return diag.Errorf("Invalid resource ID format")
-	}
-	pk := idParts[0]
-	project_id := idParts[1]
-
-	locationRaw, ok := d.GetOk("location")
-	if !ok {
-		log.Printf("[ERROR] Location is missing in state. Deletion cannot proceed.")
-		return diag.Errorf("Missing 'location' in resource state, cannot delete SSH key")
-	}
-	location := locationRaw.(string)
+	pk := d.Id()
+	project_id := d.Get("project_id").(string)
+	location := d.Get("location").(string)
 
 	err := apiClient.DeleteSshKey(pk, project_id, location)
 	if err != nil {
@@ -211,21 +156,9 @@ func resourceUpdateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceExistsSshKey(d *schema.ResourceData, m interface{}) (bool, error) {
 	apiClient := m.(*client.Client)
 
-	//  Extract pk and project_id from ID
-	idParts := strings.Split(d.Id(), ",")
-	if len(idParts) != 2 {
-		// log.Printf("[ERROR] Invalid ID format in exists check")
-		return false, nil
-	}
-	pk := idParts[0]
-	project_id := idParts[1]
-
-	locationRaw, ok := d.GetOk("location")
-	if !ok {
-		log.Printf("[ERROR] Missing location in exists check")
-		return false, nil
-	}
-	location := locationRaw.(string)
+	pk := d.Id()
+	project_id := d.Get("project_id").(string)
+	location := d.Get("location").(string)
 
 	resp, err := apiClient.GetSshKeys(location, project_id)
 	if err != nil {

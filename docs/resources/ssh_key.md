@@ -18,6 +18,7 @@ This resource allows you to manage ssh key on your e2e clusters. When applied, a
     label = <name of ssh key : String>
     ssh_key = <your public key : String>
     project_id = <project_id:string>
+    location="Delhi"
  }
 ```
 
@@ -30,6 +31,7 @@ This resource allows you to manage ssh key on your e2e clusters. When applied, a
 - `label` (String) specify The label(name) of the ssh key
 - `ssh_key` (String) specify the ssh key.
 - `project_id` (String) specify the project id in which the reserve ip is to be created. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
+- `location` (String) specify the location of the ssh key
 
 
 ### Read-Only
