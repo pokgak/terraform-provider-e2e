@@ -114,71 +114,26 @@ func (c *Client) GetLoadBalancerInfo(lbId string, location string, project_id st
 	return jsonRes, nil
 }
 
-// func (c *Client) DeleteLoadBalancer(lbId string, location string, project_id string) error {
-// 	urlLbInfo := c.Api_endpoint + "appliances/" + lbId + "/"
-// 	req, err := http.NewRequest("DELETE", urlLbInfo, nil)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	log.Printf("[INFO] CLIENT | LOAD BALANCER DELETE")
-
-// 	req, err = c.AddParamsAndHeader(req, location, project_id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	response, err := c.HttpClient.Do(req)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if response.StatusCode != http.StatusOK {
-// 		respBody := new(bytes.Buffer)
-// 		_, err := respBody.ReadFrom(response.Body)
-// 		if err != nil {
-// 			return fmt.Errorf("got a non 200 status code: %v", response.StatusCode)
-// 		}
-// 		return fmt.Errorf("got a non 200 status code: %v - %s", response.StatusCode, respBody.String())
-// 	}
-
-// 	return nil
-// }
-
 func (c *Client) DeleteLoadBalancer(lbId string, location string, project_id string) error {
 	urlLbInfo := c.Api_endpoint + "appliances/" + lbId + "/"
-	log.Printf("[INFO] CLIENT | LB DELETE | Request URL: %s", urlLbInfo)
-
 	req, err := http.NewRequest("DELETE", urlLbInfo, nil)
 	if err != nil {
-		log.Printf("[ERROR] CLIENT | LB DELETE | Failed to create request: %v", err)
 		return err
 	}
 
 	req, err = c.AddParamsAndHeader(req, location, project_id)
 	if err != nil {
-		log.Printf("[ERROR] CLIENT | LB DELETE | Failed to add headers/params: %v", err)
 		return err
 	}
 
-	log.Printf("[INFO] CLIENT | LB DELETE | Sending DELETE request for LB ID: %s, Location: %s, Project: %s", lbId, location, project_id)
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		log.Printf("[ERROR] CLIENT | LB DELETE | Request failed: %v", err)
 		return err
 	}
-	defer response.Body.Close()
-
-	respBody := new(bytes.Buffer)
-	_, _ = respBody.ReadFrom(response.Body)
-
-	log.Printf("[INFO] CLIENT | LB DELETE | Response code: %d", response.StatusCode)
-	log.Printf("[INFO] CLIENT | LB DELETE | Response body: %s", respBody.String())
-
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("got a non 200 status code: %v - %s", response.StatusCode, respBody.String())
 	}
 
-	log.Printf("[INFO] CLIENT | LB DELETE | Successfully deleted Load Balancer ID: %s", lbId)
 	return nil
 }
 
