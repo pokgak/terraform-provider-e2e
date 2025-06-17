@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -26,7 +28,13 @@ func (c *Client) AddSshKey(item models.AddSshKey, project_id string) (map[string
 
 	params.Add("apikey", c.Api_key)
 	params.Add("project_id", project_id)
+	params.Add("location", item.Location) // 
+
 	req.URL.RawQuery = params.Encode()
+// 	//  Log full URL and location
+// log.Printf("[DEBUG] Full request URL: %s", req.URL.String())
+// log.Printf("[DEBUG] Location param in AddSshKey: %s", item.Location)
+
 	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "terraform-e2e")
@@ -70,10 +78,10 @@ func (c *Client) GetSshKey(label string, project_id string) (map[string]interfac
 	if err != nil {
 		return nil, err
 	}
-	// err = CheckResponseStatus(response)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = CheckResponseStatus(response)
+	if err != nil {
+		return nil, err
+	}
 
 	defer response.Body.Close()
 	resBody, _ := ioutil.ReadAll(response.Body)
@@ -104,15 +112,23 @@ func (c *Client) DeleteSshKey(pk string, project_id string, location string) err
 	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "terraform-e2e")
+
+	//log.Printf("[INFO] Sending DELETE request to: %s", req.URL.String())
+
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
 		return err
 	}
-	// err = CheckResponseStatus(response)
-	// if err != nil {
-	// 	return err
-	// }
 	defer response.Body.Close()
+
+	// Check if delete was successful
+	if response.StatusCode != 200 && response.StatusCode != 204 {
+		bodyBytes, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("failed to delete SSH key, status: %d, response: %s", response.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] SSH key delete API returned status: %d", response.StatusCode)
+
 	return nil
 }
 
