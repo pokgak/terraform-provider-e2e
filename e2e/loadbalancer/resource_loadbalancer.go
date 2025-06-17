@@ -425,7 +425,7 @@ func CreateLoadBalancerObject(apiClient *client.Client, d *schema.ResourceData) 
 		Location: 		  d.Get("location").(string),
 	}
 	enableEosLogger, ok := d.GetOk("enable_eos_logger")
-		if ok {
+	if ok {
 		eosDetail, err := ExpandEnableEosLogger(enableEosLogger.(*schema.Set).List())
 		if err != nil {
 			return nil, diag.FromErr(err)
