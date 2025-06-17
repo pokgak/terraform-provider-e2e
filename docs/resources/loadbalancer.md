@@ -49,7 +49,7 @@ This resource allows you to manage loadbalancer on your e2e clusters. When appli
   vpc_list = [e2e_vpc.VPC-TS-01.id]
 
   is_ipv6_attached = false
-  project_id="your_project_id"
+  project_id="12345"    # Replace with your actual project ID
 }
 
 

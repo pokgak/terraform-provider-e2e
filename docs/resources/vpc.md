@@ -17,7 +17,7 @@ This resource allows you to manage vpc on your e2e clusters. When applied, a new
  resource "e2e_vpc" "vpc1" {
     vpc_name            = "vpc_name"
     location            = "Delhi"
-    project_id          = "your_project_id"
+    project_id          = "12345"  # Replace with your actual project ID
  }
 ```
 ## Schema
