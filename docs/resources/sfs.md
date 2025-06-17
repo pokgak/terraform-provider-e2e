@@ -16,7 +16,7 @@ Provides an e2e node resource. provides an on-demand, scalable, and high-perform
     plan   = "5GB"
     vpc_id = "143"
     disk_size = 5
-    project_id = "325"
+    project_id = "your_project_id"
     disk_iops = 75
     region = "Delhi"
  }
