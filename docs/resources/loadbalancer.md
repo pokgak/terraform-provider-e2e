@@ -25,15 +25,15 @@ This resource allows you to manage loadbalancer on your e2e clusters. When appli
 
   backends {
     balance         = "source"
-    name= "backend-server-ts"
+    name            = "backend-server-ts"
 
     servers {
-      id = 163745 // just for an example
-      port = 8000 // just for an example
+      id = 163745  # Replace with your node or server ID
+      port = 8000  # Replace with desired port
     }
      servers {
-      id = 149020 // just for an example
-      port = 8080 // just for an example
+      id = 149020  # Replace with your node or server ID
+      port = 8080  # Replace with desired port
     }
     http_check = false
   }
