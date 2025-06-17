@@ -121,6 +121,7 @@ func (c *Client) DeleteLoadBalancer(lbId string, location string, project_id str
 		return err
 	}
 
+	log.Printf("[INFO] CLIENT | LOAD BALANCER DELETE")
 	req, err = c.AddParamsAndHeader(req, location, project_id)
 	if err != nil {
 		return err
@@ -131,6 +132,11 @@ func (c *Client) DeleteLoadBalancer(lbId string, location string, project_id str
 		return err
 	}
 	if response.StatusCode != http.StatusOK {
+		respBody := new(bytes.Buffer)
+		_, err := respBody.ReadFrom(response.Body)
+		if err != nil {
+			return fmt.Errorf("got a non 200 status code: %v", response.StatusCode)
+		}
 		return fmt.Errorf("got a non 200 status code: %v - %s", response.StatusCode, respBody.String())
 	}
 
