@@ -89,7 +89,7 @@ func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface
 	log.Printf("[info] inside SSH key Resource read")
 	label := d.Get("label").(string)
 	project_id := d.Get("project_id").(string)
-	res, err := apiClient.GetSshKey(label, project_id)
+	res, err := apiClient.GetSshKey(label, project_id, d.Get("location").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -146,7 +146,7 @@ func resourceExistsSshKey(d *schema.ResourceData, m interface{}) (bool, error) {
 
 	ssh_key_id := d.Id()
 	project_id := d.Get("project_id").(string)
-	_, err := apiClient.GetSshKey(ssh_key_id, project_id)
+	_, err := apiClient.GetSshKey(ssh_key_id, project_id, d.Get("location").(string))
 
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
