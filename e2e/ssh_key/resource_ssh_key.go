@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"strconv"
-	"strings"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,23 +16,26 @@ import (
 func ResourceSshKey() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-
 			"label": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The label(name) of the ssh key",
 			},
-
 			"ssh_key": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "your ssh key",
+				Description: "Your ssh key",
 			},
 			"project_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The ID of the project associated with the ssh key",
 				ForceNew:    true,
+			},
+			"location": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The location/region in which the SSH key is to be created",
 			},
 			"timestamp": {
 				Type:        schema.TypeString,
@@ -46,8 +49,9 @@ func ResourceSshKey() *schema.Resource {
 		UpdateContext: resourceUpdateSshKey,
 		DeleteContext: resourceDeleteSshKey,
 		Exists:        resourceExistsSshKey,
+
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }
@@ -58,11 +62,13 @@ func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 
 	log.Printf("[INFO] SSH KEY ADD STARTS ")
 	ssh_key := models.AddSshKey{
-		Label:  d.Get("label").(string),
-		SshKey: d.Get("ssh_key").(string),
+		Label:    d.Get("label").(string),
+		SshKey:   d.Get("ssh_key").(string),
+		Location: d.Get("location").(string),
 	}
 
 	project_id := d.Get("project_id").(string)
+	location := d.Get("location").(string)
 	res, err := apiClient.AddSshKey(ssh_key, project_id)
 	if err != nil {
 		return diag.FromErr(err)
@@ -70,57 +76,65 @@ func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 
 	log.Printf("[INFO] SSH_KEY CREATE | RESPONSE BODY | %+v", res)
 
-	log.Printf("[INFO] Ssh key creation | res = %+v, type = %T", res, res)
 	data := res["data"].(map[string]interface{})
-
 	ssh_key_id := strconv.FormatFloat(data["pk"].(float64), 'f', 0, 64)
 	d.SetId(ssh_key_id)
-
 	d.Set("label", data["label"].(string))
 	d.Set("ssh_key", data["ssh_key"].(string))
 	d.Set("timestamp", data["timestamp"].(string))
+	d.Set("location", location)
+
 	return diags
 }
 
 func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
-	log.Printf("[info] inside SSH key Resource read")
-	label := d.Get("label").(string)
+
+	pk := d.Id()
 	project_id := d.Get("project_id").(string)
-	res, err := apiClient.GetSshKey(label, project_id, d.Get("location").(string))
+	location := d.Get("location").(string)
+
+	sshKey, err := apiClient.GetSshKeyByPk(pk, project_id, location)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	log.Printf("[info] SSH Key Resource read | res = %+v, type = %T", res, res)
-	data := res["data"].(map[string]interface{})
+	if sshKey == nil {
+		log.Printf("[WARN] SSH key with ID %s not found", pk)
+		d.SetId("")
 
-	d.Set("label", data["label"].(string))
-	d.Set("ssh_key", data["ssh_key"].(string))
-	d.Set("timestamp", data["timestamp"].(string))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "SSH key not found",
+			Detail:   "The SSH key may have been deleted manually.",
+		})
 
-	log.Printf("[info] SSH Key Resource read | after setting data")
+		return diags
+	}
+
+	d.Set("label", sshKey.Label)
+	d.Set("ssh_key", sshKey.Ssh_key)
+	d.Set("timestamp", sshKey.Timestamp)
 	return diags
-
 }
 
 func resourceDeleteSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
-	ssh_key_id := d.Id()
-	project_id := d.Get("project_id").(string)
-	location := "Delhi"
 
-	err := apiClient.DeleteSshKey(ssh_key_id, project_id, location)
+	pk := d.Id()
+	project_id := d.Get("project_id").(string)
+	location := d.Get("location").(string)
+
+	err := apiClient.DeleteSshKey(pk, project_id, location)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	d.SetId("")
 	return diags
 }
 func resourceUpdateSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 
 	if d.HasChange("label") {
@@ -138,22 +152,18 @@ func resourceUpdateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	return diags
-
 }
 
 func resourceExistsSshKey(d *schema.ResourceData, m interface{}) (bool, error) {
 	apiClient := m.(*client.Client)
 
-	ssh_key_id := d.Id()
+	pk := d.Id()
 	project_id := d.Get("project_id").(string)
-	_, err := apiClient.GetSshKey(ssh_key_id, project_id, d.Get("location").(string))
+	location := d.Get("location").(string)
 
+	sshKey, err := apiClient.GetSshKeyByPk(pk, project_id, location)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return false, nil
-		} else {
-			return false, err
-		}
+		return false, err
 	}
-	return true, nil
+	return sshKey != nil, nil
 }
