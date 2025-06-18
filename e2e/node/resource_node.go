@@ -205,6 +205,12 @@ func ResourceNode() *schema.Resource {
 				Default:     false,
 				Description: "for reinstalling the node. Node should be in running state to perform this action. Always check this field as it will delete all your data permenantly when set true.",
 			},
+			// "snapshot_name": {
+			// 	Type:        schema.TypeString,
+			// 	Optional:    true,
+			// 	Default:     false,
+			// 	Description: "for taking snapshot of  the node. Node should be in running state to perform this action.",
+			// },
 			"project_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -471,6 +477,13 @@ func resourceUpdateNode(ctx context.Context, d *schema.ResourceData, m interface
 			return diag.FromErr(err)
 		}
 	}
+
+	// if d.HasChange("snapshot_name") {
+	// 	if d.Get("status").(string) == constants.NODE_STATUS["CREATING"] || d.Get("status").(string) == constants.NODE_STATUS["REINSTALLING"] {
+	// 		return diag.Errorf("Cannot take snapshot as the node is in %s state", d.Get("status").(string))
+	// 	}
+
+	// }
 
 	if d.HasChange("power_status") {
 		nodestatus := d.Get("status").(string)
