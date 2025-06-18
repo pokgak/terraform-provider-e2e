@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"strings"
 	"encoding/json"
 	"io/ioutil"
 	"fmt"
@@ -164,3 +165,58 @@ func (c *Client) GetSshKeys(location string, project_id string) (*models.SshKeyR
 	}
 	return &res, nil
 }
+func (c *Client) GetSshKeyByPk(pk string, project_id string, location string) (*models.SshKey, error) {
+	url := strings.TrimRight(c.Api_endpoint, "/") + "/ssh_keys/"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	params := req.URL.Query()
+	params.Add("apikey", c.Api_key)
+	params.Add("project_id", project_id)
+	params.Add("location", location)
+	params.Add("pk", pk)
+	req.URL.RawQuery = params.Encode()
+
+	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "terraform-e2e")
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 404 {
+		return nil, nil // not found
+	}
+
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("unexpected status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var data struct {
+		Code  int             `json:"code"`
+		Data  []models.SshKey `json:"data"`
+		Error []interface{}   `json:"error"`
+	}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(data.Data) == 0 {
+		return nil, nil // Not found
+	}
+
+	return &data.Data[0], nil
+}
+

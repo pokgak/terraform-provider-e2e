@@ -92,30 +92,27 @@ func resourceCreateSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
-	log.Printf("[info] inside SSH key Resource read")
 
 	pk := d.Id()
 	project_id := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 
-	res, err := apiClient.GetSshKeys(location, project_id)
+	sshKey, err := apiClient.GetSshKeyByPk(pk, project_id, location)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	for _, key := range res.Data {
-		if strconv.Itoa(key.Pk) == pk {
-			d.Set("label", key.Label)
-			d.Set("ssh_key", key.Ssh_key)
-			d.Set("timestamp", key.Timestamp)
-			return diags
-		}
+	if sshKey == nil {
+		log.Printf("[WARN] SSH key with pk=%s not found", pk)
+		d.SetId("")
+		return diags
 	}
 
-	log.Printf("[WARN] SSH key with pk=%s not found", pk)
-	d.SetId("")
+	d.Set("label", sshKey.Label)
+	d.Set("ssh_key", sshKey.Ssh_key)
+	d.Set("timestamp", sshKey.Timestamp)
 	return diags
 }
+
 
 func resourceDeleteSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
@@ -160,16 +157,9 @@ func resourceExistsSshKey(d *schema.ResourceData, m interface{}) (bool, error) {
 	project_id := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 
-	resp, err := apiClient.GetSshKeys(location, project_id)
+	sshKey, err := apiClient.GetSshKeyByPk(pk, project_id, location)
 	if err != nil {
 		return false, err
 	}
-
-	for _, key := range resp.Data {
-		if strconv.Itoa(key.Pk) == pk {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return sshKey != nil, nil
 }
