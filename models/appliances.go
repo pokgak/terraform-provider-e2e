@@ -20,6 +20,7 @@ type LoadBalancerCreate struct {
 	TcpBackend       []TcpBackendDetail     `json:"tcp_backend"`
 	IsIpv6Attached   bool                   `json:"is_ipv6_attached"`
 	DefaultBackend   string                 `json:"default_backend"`
+	Location         string                 `json:"location"`
 }
 
 type Backend struct {

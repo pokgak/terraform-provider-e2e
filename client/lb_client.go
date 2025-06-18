@@ -44,6 +44,7 @@ func (c *Client) NewLoadBalancer(item *models.LoadBalancerCreate, project_id str
 	params := req.URL.Query()
 	params.Add("apikey", c.Api_key)
 	params.Add("project_id", project_id)
+	params.Add("location", item.Location)
 	req.URL.RawQuery = params.Encode()
 	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
 	req.Header.Add("Content-Type", "application/json")
@@ -121,7 +122,6 @@ func (c *Client) DeleteLoadBalancer(lbId string, location string, project_id str
 	}
 
 	log.Printf("[INFO] CLIENT | LOAD BALANCER DELETE")
-
 	req, err = c.AddParamsAndHeader(req, location, project_id)
 	if err != nil {
 		return err

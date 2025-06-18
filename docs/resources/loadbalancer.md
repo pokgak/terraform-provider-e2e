@@ -25,15 +25,15 @@ This resource allows you to manage loadbalancer on your e2e clusters. When appli
 
   backends {
     balance         = "source"
-    name= "backend-server-ts"
+    name            = "backend-server-ts"
 
     servers {
-      id = 163745
-      port = 8000
+      id = 163745  # Replace with your node or server ID
+      port = 8000  # Replace with desired port
     }
      servers {
-      id = 149020
-      port = 8080
+      id = 149020  # Replace with your node or server ID
+      port = 8080  # Replace with desired port
     }
     http_check = false
   }
@@ -49,13 +49,14 @@ This resource allows you to manage loadbalancer on your e2e clusters. When appli
   vpc_list = [e2e_vpc.VPC-TS-01.id]
 
   is_ipv6_attached = false
-  project_id=22878
+  project_id="12345"    # Replace with your actual project ID
 }
 
 
 resource "e2e_vpc" "VPC-TS-01" {
-  region="Delhi"
+  location="Delhi"
   vpc_name="VPC-TS-01"
+  project_id="your_project_id"
 }
 ```
 
