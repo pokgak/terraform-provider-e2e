@@ -590,35 +590,6 @@ func (c *Client) DeleteReserveIP(ip_address string, project_id string, location 
 
 }
 
-func (c *Client) GetReservedIp(ip_address string, project_id string, location string) (*models.ResponseReserveIps, error) {
-
-	urlNode := c.Api_endpoint + "reserve_ips/" + ip_address + "/actions/"
-	req, err := http.NewRequest("GET", urlNode, nil)
-	if err != nil {
-		return nil, err
-	}
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
-	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		log.Printf("[INFO] error inside get reserve ip")
-		return nil, err
-	}
-	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-	res := models.ResponseReserveIps{}
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		log.Printf("[INFO] inside get reserve ip | error while unmarshlling")
-		return nil, err
-	}
-	return &res, nil
-}
-
 func (c *Client) GetReservedIps(project_id string, location string) (*models.ResponseReserveIps, error) {
 
 	urlGetReserveIps := c.Api_endpoint + "reserve_ips/"
