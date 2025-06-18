@@ -190,7 +190,7 @@ func (c *Client) GetSshKeyByPk(pk string, project_id string, location string) (*
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 404 {
-		return nil, nil // not found
+		return nil, fmt.Errorf("SSH key with ID %s not found", pk)
 	}
 
 	if resp.StatusCode != 200 {
@@ -214,7 +214,7 @@ func (c *Client) GetSshKeyByPk(pk string, project_id string, location string) (*
 	}
 
 	if len(data.Data) == 0 {
-		return nil, nil // Not found
+		return nil, fmt.Errorf("SSH key with ID %s not found in response", pk)
 	}
 
 	return &data.Data[0], nil

@@ -102,10 +102,18 @@ func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	if sshKey == nil {
-		log.Printf("[WARN] SSH key with pk=%s not found", pk)
-		d.SetId("")
-		return diags
-	}
+	log.Printf("[WARN] SSH key with ID %s not found", pk)
+	d.SetId("")
+
+	diags = append(diags, diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  "SSH key not found",
+		Detail:   "The SSH key may have been deleted manually.",
+	})
+
+	return diags
+}
+
 
 	d.Set("label", sshKey.Label)
 	d.Set("ssh_key", sshKey.Ssh_key)
