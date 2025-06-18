@@ -16,6 +16,7 @@ func convertLabelToSshKey(m interface{}, ssh_keys []interface{}, project_id stri
 	if ssh_keys != nil || len(ssh_keys) > 0 {
 		var new_SSH_keys []interface{}
 		for _, v := range ssh_keys {
+
 			res, err := apiClient.GetSshKey(v.(string), project_id, location)
 			log.Printf("[INFO] Helper Function res = %+v", res)
 			if err != nil {
