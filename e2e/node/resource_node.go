@@ -281,7 +281,8 @@ func resourceCreateNode(ctx context.Context, d *schema.ResourceData, m interface
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 	copy_ssh_keys := d.Get("ssh_keys")
-	new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), d.Get("project_id").(string), d.Get("location").(string))
+	location := d.Get("location").(string)
+	new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), d.Get("project_id").(string), location)
 
 	if Err != nil {
 		return Err
