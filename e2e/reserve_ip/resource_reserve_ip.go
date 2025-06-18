@@ -5,6 +5,7 @@ import (
 	// "fmt"
 	"log"
 	"math"
+
 	"strings"
 
 	// "regexp"
@@ -13,6 +14,7 @@ import (
 	//"time"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 
 	// "github.com/hashicorp/terraform-plugin-log"
 	// "github.com/hashicorp/terraform-plugin-log/tflog"
@@ -143,23 +145,38 @@ func resourceReadReserveIP(ctx context.Context, d *schema.ResourceData, m interf
 
 	reserveId := d.Get("ip_address").(string)
 	project_id := d.Get("project_id").(string)
-	res, err := apiClient.GetReservedIp(reserveId, project_id, d.Get("location").(string))
+
+	res, err := apiClient.GetReservedIps(project_id, d.Get("location").(string))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			d.SetId("")
 		} else {
-			return diag.Errorf("error finding Item with ID %s", reserveId)
+			return diag.Errorf("error fetching reserved_ip list ")
 
 		}
 	}
 
 	log.Printf("[INFO] ReserveIP READ | RESPONSE BODY | %+v %T", res, res)
+
 	codeok := (res.Code == 200)
 	if !codeok {
 		return diag.Errorf(res.Message)
 	}
-	if true || len(res.Data) == 1 {
-		data := res.Data[0]
+
+	var data models.ReserveIp
+
+	for _, item := range res.Data {
+		if item.IPAddress == reserveId {
+			data = item
+			break
+		}
+	}
+	log.Printf("[INFO] FILTER DATA | %+v %T", data, data)
+
+	if data.IPAddress == "" {
+		return diag.Errorf("Cannot find reserve_ip with address : %s", reserveId)
+	} else {
+
 		log.Printf("[INFO] ReserveIP READ | BEFORE SETTING DATA %+v, %v, %T =======================", data, data.Status, data.Status)
 		d.Set("ip_address", data.IPAddress)
 		d.Set("status", data.Status)
@@ -170,6 +187,7 @@ func resourceReadReserveIP(ctx context.Context, d *schema.ResourceData, m interf
 		d.Set("reserved_type", data.ReservedType)
 		d.Set("reserve_id", strconv.FormatFloat(data.ReserveID, 'f', -1, 64))
 		d.Set("project_name", data.ProjectName)
+
 	}
 	return diags
 }

@@ -281,7 +281,7 @@ func resourceCreateNode(ctx context.Context, d *schema.ResourceData, m interface
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 	copy_ssh_keys := d.Get("ssh_keys")
-	new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), d.Get("project_id").(string))
+	new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), d.Get("project_id").(string), d.Get("location").(string))
 
 	if Err != nil {
 		return Err
@@ -649,7 +649,7 @@ func resourceUpdateNode(ctx context.Context, d *schema.ResourceData, m interface
 		log.Printf("[INFO] nodeId = %v changed ssh_keys = %s ", d.Id(), d.Get("ssh_keys"))
 		log.Printf("[INFO] type of ssh_keys data = %T", d.Get("ssh_keys"))
 
-		new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), project_id)
+		new_SSH_keys, Err := convertLabelToSshKey(m, d.Get("ssh_keys").([]interface{}), project_id, d.Get("location").(string))
 		if Err != nil {
 			d.Set("ssh_keys", prevSshKeys)
 			return Err
