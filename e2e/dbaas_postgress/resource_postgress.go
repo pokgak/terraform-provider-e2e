@@ -44,7 +44,7 @@ func ResourcePostgresDBaaS() *schema.Resource {
 				Required:    true,
 				Description: "Project ID to which the DBaaS instance belongs",
 			},
-			"database_version": {
+			"version": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Version of database",
@@ -117,7 +117,7 @@ func ResourcePostgresDBaaS() *schema.Resource {
 				},
 			},
 
-			"pg_id": {
+			"parameter_group_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "ID of parameter group that need to be attached",
@@ -206,10 +206,10 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 	project_id := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 	plan := d.Get("plan").(string)
-	database_version := d.Get("database_version").(string)
+	version := d.Get("version").(string)
 
 	// Get software ID
-	software_id, err := apiClient.GetSoftwareId(project_id, location, "PostgreSQL", database_version)
+	software_id, err := apiClient.GetSoftwareId(project_id, location, "PostgreSQL", version)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -224,7 +224,7 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 
 	// Construct payload
 	var pgID *int
-	if v, ok := d.GetOk("pg_id"); ok {
+	if v, ok := d.GetOk("parameter_group_id"); ok {
 		id := v.(int)
 		pgID = &id
 	}
@@ -241,7 +241,7 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 			DBaaSNumber: dbConfigMap["dbaas_number"].(int),
 			Name:        dbConfigMap["name"].(string),
 		},
-		PGID: pgID, // Only set if pg_id was provided
+		PGID: pgID, // Only set if parameter_group_id was provided
 	}
 	//vpc list config
 	vpcList, ok := d.GetOk("vpc_list")
@@ -481,7 +481,7 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		}
 	}
 
-	if d.HasChange("pg_id") {
+	if d.HasChange("parameter_group_id") {
 
 		status := d.Get("status").(string)
 		dbaas_id := d.Get("id")
@@ -491,7 +491,7 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 			return diag.Errorf("Cannot perform parameter group changes while DBaaS is in CREATING state")
 		}
 
-		if v, ok := d.GetOk("pg_id"); ok {
+		if v, ok := d.GetOk("parameter_group_id"); ok {
 			pgID := strconv.Itoa(v.(int))
 			err := apiClient.UpdateParameterGroup(dbaas_id.(string), pgID, d.Get("project_id").(string), d.Get("location").(string))
 			if err != nil {
@@ -507,11 +507,11 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		project_id := d.Get("project_id").(string)
 		location := d.Get("location").(string)
 		plan := d.Get("plan").(string)
-		database_version := d.Get("database_version").(string)
+		version := d.Get("version").(string)
 		dbaas_id := d.Get("id")
 
 		// Get software ID
-		software_id, err := apiClient.GetSoftwareId(project_id, location, "PostgreSQL", database_version)
+		software_id, err := apiClient.GetSoftwareId(project_id, location, "PostgreSQL", version)
 		if err != nil {
 			return diag.FromErr(err)
 		}
