@@ -1,0 +1,60 @@
+package dbaasmysql
+
+import (
+	"fmt"
+	"log"
+	"strconv"
+	"time"
+
+	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/constants"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
+func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *client.Client) ([]models.VpcDetail, error) {
+	var vpc_details []models.VpcDetail
+
+	for _, id := range vpc_list {
+		vpc_detail, err := apiClient.GetVpc(strconv.Itoa(id.(int)), d.Get("project_id").(string), d.Get("location").(string))
+		if err != nil {
+			return nil, err
+		}
+		data := vpc_detail.Data
+		if data.State != "Active" {
+			return nil, fmt.Errorf("Can not attach vpc currently, vpc is in %s state", data.State)
+		}
+		r := models.VpcDetail{
+			Network_id: data.Network_id,
+			VpcName:    data.Name,
+			Ipv4_cidr:  data.Ipv4_cidr,
+		}
+
+		vpc_details = append(vpc_details, r)
+	}
+	return vpc_details, nil
+}
+
+func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string, location string) error {
+	apiClient := m.(*client.Client)
+
+	maxRetries := 30 // Retry up to 20 times
+	for i := 0; i < maxRetries; i++ {
+		time.Sleep(constants.WAIT_TIMEOUT * time.Second)
+
+		dbaasInfo, err := apiClient.GetMySqlDbaas(dbaasID, project_id, location)
+		if err != nil {
+			log.Printf("[ERROR] Error fetching MySQL DBaaS Info during wait: %s", err)
+			return err
+		}
+
+		status := dbaasInfo.Data.Status
+		log.Printf("[INFO] Waiting for MySQL DBaaS instance to power off/on, current status: %s", status)
+
+		if status == "SUSPENDED" {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("timeout: MySQL DBaaS did not reach SUSPENDED state in time")
+}
