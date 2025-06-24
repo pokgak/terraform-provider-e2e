@@ -28,7 +28,7 @@ func ResourceMySql() *schema.Resource {
 				ForceNew:    true,
 				Description: "ID of the project, this should be unique",
 			},
-			"db_version": {
+			"version": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "this field is to specifiy which version of MYSQL user wants to cerate",
@@ -105,7 +105,7 @@ func ResourceMySql() *schema.Resource {
 				Computed:    true,
 				Description: "look what to write",
 			},
-			"pg_id": {
+			"parameter_group_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "ID of parameter group that need to be attached",
@@ -141,8 +141,8 @@ func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*model
 		Plan:                d.Get("plan").(string),
 		Location:            d.Get("db_location").(string),
 		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
-		ParameterGroupId:    d.Get("pg_id").(int),
-		Version:             d.Get("db_version").(string),
+		ParameterGroupId:    d.Get("parameter_group_id").(int),
+		Version:             d.Get("version").(string),
 		AttachPublicIp:      d.Get("attach_public_ip").(bool),
 	}
 
@@ -160,7 +160,7 @@ func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*model
 
 	project_id := d.Get("project_id").(string)
 	location := d.Get("location").(string)
-	database_version := d.Get("db_version").(string)
+	database_version := d.Get("version").(string)
 
 	softwareId, err := apiClient.GetSoftwareId(project_id, location, "MySQL", database_version)
 
@@ -245,7 +245,7 @@ func ResourceReadMySqlDB(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.Set("status", data.Status)
 	d.Set("is_encryption_enabled", data.IsEncryptionEnabled)
-	d.Set("pg_id", data.MasterNode.Database.PGDetail.ID)
+	d.Set("parameter_group_id", data.MasterNode.Database.PGDetail.ID)
 	log.Println("[INFO] DBaaS resource read completed successfully")
 
 	return diags
@@ -355,10 +355,10 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	if d.HasChange("pg_id") {
-		oldVal, newVal := d.GetChange("pg_id")
+	if d.HasChange("parameter_group_id") {
+		oldVal, newVal := d.GetChange("parameter_group_id")
 
-		log.Printf("[DEBUG] pg_id: %v | hasChange(pg_id): true", newVal)
+		log.Printf("[DEBUG] parameter_group_id: %v | hasChange(parameter_group_id): true", newVal)
 		log.Printf("[DEBUG] oldVal: %v, newVal: %v", oldVal, newVal)
 
 		oldInt, oldOK := oldVal.(int)
@@ -435,7 +435,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 		plan := planRaw.(string)
 
-		versionRaw, ok := d.GetOk("db_version")
+		versionRaw, ok := d.GetOk("version")
 		if !ok || versionRaw == nil {
 			return diag.Errorf("database_version is required but not set")
 		}
