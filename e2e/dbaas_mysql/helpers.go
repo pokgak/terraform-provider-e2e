@@ -38,7 +38,7 @@ func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *cl
 func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string, location string) error {
 	apiClient := m.(*client.Client)
 
-	maxRetries := 30 // Retry up to 20 times
+	maxRetries := 30
 	for i := 0; i < maxRetries; i++ {
 		time.Sleep(constants.WAIT_TIMEOUT * time.Second)
 

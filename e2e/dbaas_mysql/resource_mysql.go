@@ -102,7 +102,7 @@ func ResourceMySql() *schema.Resource {
 			"is_encryption_enabled": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Computed:    true, // check this
+				Computed:    true,
 				Description: "look what to write",
 			},
 			"pg_id": {
