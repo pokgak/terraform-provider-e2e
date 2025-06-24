@@ -121,6 +121,11 @@ func ResourceMySql() *schema.Resource {
 				Optional:    true,
 				Description: "additional size of disk you want to attach",
 			},
+			"disk": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Disk size",
+			},
 		},
 
 		CreateContext: ResourceCreateMySqlDB,
@@ -246,6 +251,7 @@ func ResourceReadMySqlDB(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("status", data.Status)
 	d.Set("is_encryption_enabled", data.IsEncryptionEnabled)
 	d.Set("parameter_group_id", data.MasterNode.Database.PGDetail.ID)
+	d.Set("disk", data.MasterNode.Disk)
 	log.Println("[INFO] DBaaS resource read completed successfully")
 
 	return diags
