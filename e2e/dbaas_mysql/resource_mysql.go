@@ -139,7 +139,7 @@ func ResourceMySql() *schema.Resource {
 }
 
 func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*models.MySqlCreate, diag.Diagnostics) {
-	log.Printf("====================================[INFO] MYSQL OBJECT CREATION STARTS==============================================")
+	log.Printf("==============[INFO] MYSQL OBJECT CREATION STARTS=====================")
 
 	mySqlobject := models.MySqlCreate{
 		Name:                d.Get("dbaas_name").(string),
@@ -202,7 +202,7 @@ func ResourceCreateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 	mySqlObj, diags := CreateMySqlObject(apiClient, d)
 
 	if diags != nil {
-		log.Println("=========================================[ERROR] CreateMySqlObject returned error or nil object=======================================================================================================")
+		log.Println("===============[ERROR] CreateMySqlObject returned error or nil object =================")
 		return diags
 	}
 
@@ -211,7 +211,7 @@ func ResourceCreateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	log.Printf("================================================[INFO] MYSQL DB CREATE | RESPONSE BODY | %+v===================================================================", response)
+	log.Printf("===================[INFO] MYSQL DB CREATE | RESPONSE BODY | %+v ======================", response)
 
 	dataRaw, ok := response["data"]
 	if !ok {
