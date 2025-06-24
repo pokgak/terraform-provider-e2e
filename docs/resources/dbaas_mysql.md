@@ -55,7 +55,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 ### Optional
 
 - `parameter_group_id` (Number) Parameter Group ID (optional). To find available PG IDs, refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/rds-parameter-group-templates/get)
-- `size` (Number) Size of the attached disk in GB, this field will be used when you want to use expand_disk option
+- `size` (Number) Size of the additionally attached disk in GB, this field will be used when you want to use expand_disk option.
 - `attach_public_ip` (Boolean) Whether to attach a public IP to the DBaaS instance.
 - `is_encryption_enabled` (Boolean) Whether encryption is enabled for the DBaaS.
 
