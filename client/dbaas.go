@@ -14,9 +14,6 @@ import (
 	
 )
 
-// GetSoftwareId fetches the software ID for a given engine name and version.
-// It queries the /rds/plans/ endpoint and searches for a matching engine.
-// Returns the software ID if found, otherwise returns an error.
 func (c *Client) GetSoftwareId(projectID string, location string, name string, version string) (int, error) {
 	url := c.Api_endpoint + "rds/plans/"
 
@@ -69,7 +66,6 @@ func (c *Client) GetSoftwareId(projectID string, location string, name string, v
 	return -1, errors.New("matching engine not found")
 }
 
-// GetTemplateId fetches the template ID for a given plan name and software ID.
 // It queries the /rds/plans/ endpoint using the software ID as a filter.
 // Returns the template ID if found, otherwise returns an error.
 func (c *Client) GetTemplateId(projectID string, location string, planName string, softwareID string) (int, error) {
@@ -125,8 +121,6 @@ func (c *Client) GetTemplateId(projectID string, location string, planName strin
 	return -1, errors.New("matching plan not found")
 }
 
-
-
 func (c *Client) ExpandVpcList(vpcIDs []string, projectID, location string) ([]models.VPCMetadata, error) {
 	var vpcDetails []models.VPCMetadata
 
@@ -153,5 +147,6 @@ func (c *Client) ExpandVpcList(vpcIDs []string, projectID, location string) ([]m
 
 	return vpcDetails, nil
 }
+
 
 

@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceMariaDB defines the Terraform schema and lifecycle operations for the MariaDB service on E2E Cloud.
-//
 // This resource allows users to:
 //   - Provision a MariaDB instance with a specific version and plan
 //   - Configure networking (VPCs, public IP), encryption, and parameter groups
@@ -217,25 +215,17 @@ func ResourceMariaDB() *schema.Resource {
 			},
 		},
 
-		// === Terraform Lifecycle Hooks ===
 		CreateContext: resourceCreateMariaDB,
 		ReadContext:   resourceReadMariaDB,
 		UpdateContext: resourceUpdateMariaDB,
 		DeleteContext: resourceDeleteMariaDB,
 
-		// === Import Support ===
-		// Allows `terraform import e2e_mariadb.cluster <cluster_id>`
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 	}
 }
 
-
-
-
-// resourceCreateMariaDB handles the creation of a MariaDB instance on E2E Cloud.
-//
 // This function performs the following steps:
 //   1. Resolves required IDs like software_id and template_id
 //   2. Prepares and validates the creation request payload
@@ -246,30 +236,30 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 
-	// === Step 1: Extract required fields from Terraform schema ===
+	//  Extract required fields from Terraform schema 
 	projectID := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 	softwareName := d.Get("software_name").(string)
 	softwareVersion := d.Get("software_version").(string)
 	planName := d.Get("plan_name").(string)
 
-	// === Step 2: Resolve software ID from software name + version ===
+	//  Resolve software ID from software name + version 
 	softwareID, err := apiClient.GetSoftwareId(projectID, location, softwareName, softwareVersion)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to get software ID: %v", err))
 	}
 
-	// === Step 3: Resolve template ID based on plan and software ===
+	//  Resolve template ID based on plan and software 
 	templateID, err := apiClient.GetTemplateId(projectID, location, planName, strconv.Itoa(softwareID))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to get template ID: %v", err))
 	}
 
-	// === Step 4: Extract nested database config block (1 item expected) ===
+	//  Extract nested database config block (1 item expected) 
 	dbConfigList := d.Get("database").([]interface{})
 	dbConfigMap := dbConfigList[0].(map[string]interface{})
 
-	// === Step 5: Extract and convert list of VPC IDs (if any) ===
+	//  Extract and convert list of VPC IDs (if any) 
 	var vpcIDs []string
 	for _, v := range d.Get("vpcs").([]interface{}) {
 		vpcIDs = append(vpcIDs, v.(string))
@@ -284,7 +274,7 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	// === Step 6: Read optional Terraform parameters ===
+	//  Read optional Terraform parameters 
 
 	publicIPEnabled := d.Get("public_ip_enabled").(bool)
 
@@ -303,7 +293,7 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		encryptionPassphrase = v.(string)
 	}
 
-	// === Step 7: Construct MariaDB creation request ===
+	//  Construct MariaDB creation request 
 	req := models.MariaDBCreateRequest{
 		Name:                 d.Get("name").(string),
 		SoftwareID:           softwareID,
@@ -322,13 +312,13 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		},
 	}
 
-	// === Step 8: Call backend API to create the MariaDB service ===
+	//  Call backend API to create the MariaDB service 
 	mariaDB, err := apiClient.CreateMariaDB(&req, projectID, location)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to create MariaDB instance: %v", err))
 	}
 
-	// === Step 9: Populate Terraform state with returned data ===
+	//  Populate Terraform state with returned data 
 	d.SetId(fmt.Sprintf("%d", mariaDB.ID))
 	d.Set("name", mariaDB.Name)
 	d.Set("status", mariaDB.Status)
@@ -338,45 +328,28 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("software_id", softwareID)
 	d.Set("template_id", templateID)
 
-	// === Step 10: Update public_ip_attached (computed) ===
+	//  Update public_ip_attached (computed) 
 	d.Set("public_ip_attached", mariaDB.MasterNode.PublicIPAddress != "")
 
 	return diags
 }
 
-
-
-
-
-
-
-
-// resourceReadMariaDB fetches the current state of a MariaDB cluster from the E2E Cloud API
-// and updates the Terraform state to reflect actual infrastructure state.
-//
-// This function is invoked automatically by Terraform during `plan`, `apply`, or `refresh`
-// to ensure the local state matches the real-world configuration on E2E Cloud.
-//
-// Fields like software name/version, encryption, public IPs, etc. are updated.
-// Critical caution is taken to *not overwrite* user-defined values such as parameter groups.
 func resourceReadMariaDB(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
 
-	// === Step 1: Extract identifiers from Terraform state ===
+	// Extract identifiers from Terraform state
 	id := d.Id()
 	projectID := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 
-	// === Step 2: Call the E2E Cloud API to get the live MariaDB instance ===
+	// Call the E2E Cloud API to get the live MariaDB instance
 	mariaDB, err := apiClient.ReadMariaDB(id, projectID, location)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("failed to read MariaDB instance: %v", err))
 	}
 
-	// === Step 3: Update Terraform state with backend values ===
-
-	// Basic metadata
+	// Update Terraform state with backend values
 	_ = d.Set("name", mariaDB.Name)
 
 	// Normalize "SUSPENDED" (backend) to "STOPPED" (Terraform-expected value)
@@ -390,35 +363,23 @@ func resourceReadMariaDB(ctx context.Context, d *schema.ResourceData, m interfac
 	_ = d.Set("software_name", mariaDB.Software.Name)
 	_ = d.Set("software_version", mariaDB.Software.Version)
 
+	// Plan name (required for diff suppression and correct plan logic)
+	_ = d.Set("plan_name", mariaDB.MasterNode.Plan.Name)
+
 	// Network metadata
 	_ = d.Set("public_ip_address", mariaDB.MasterNode.PublicIPAddress)
 	_ = d.Set("private_ip_address", mariaDB.MasterNode.PrivateIPAddress)
 	_ = d.Set("port", mariaDB.MasterNode.Port)
 
-	// Computed field: if public IP is currently attached
+	// Computed field: whether public IP is currently attached
 	_ = d.Set("public_ip_attached", mariaDB.MasterNode.PublicIPAddress != "")
 
 	// Encryption state (read-only: backend-enforced)
 	_ = d.Set("is_encryption_enabled", mariaDB.IsEncryptionEnabled)
 
-	// === NOTE: Do NOT update fields that are user-defined in config ===
-	// Avoid overwriting:
-	// - public_ip_enabled (user intent)
-	// - parameter_group_id (user-defined binding)
-	// - plan_name (set during upgrade)
-	// These must only be changed during Create or Update explicitly.
-
 	return diags
 }
 
-
-
-
-
-
-// resourceDeleteMariaDB deletes the MariaDB cluster from the E2E Cloud platform
-// and removes it from the Terraform state. This function is triggered when the resource
-// is removed from configuration or explicitly destroyed.
 func resourceDeleteMariaDB(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	var diags diag.Diagnostics
@@ -438,17 +399,13 @@ func resourceDeleteMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	return diags
 }
 
-
-
-// resourceUpdateMariaDB handles in-place updates for the e2e MariaDB Terraform resource.
-// Any errors are converted into Terraform diagnostics to be reported to the user.
 func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
 	id := d.Id()
 	projectID := d.Get("project_id").(string)
 	location := d.Get("location").(string)
 
-	// === 1. Cluster Status Update ===
+	//   Cluster Status Update 
 	// Change operational status: STOPPED, RUNNING, or RESTARTING.
 	if d.HasChange("status") {
 		newStatus := d.Get("status").(string)
@@ -470,7 +427,7 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	// === 2. VPC Attach/Detach Handling ===
+	//  VPC Attach/Detach Handling 
 	// Detect differences in VPC list and call the appropriate attach/detach APIs.
 	if d.HasChange("vpcs") {
 		oldRaw, newRaw := d.GetChange("vpcs")
@@ -502,7 +459,7 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	// === 3. Public IP Attach/Detach ===
+	//   Public IP Attach/Detach 
 	// If public_ip_enabled changes, call appropriate API.
 	if d.HasChange("public_ip_enabled") {
 		newVal := d.Get("public_ip_enabled").(bool)
@@ -517,7 +474,7 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	// === 4. Parameter Group Attachment/Detachment ===
+	//  Parameter Group Attachment/Detachment 
 	// Handle attach, detach, or no-op based on changes in parameter_group_id.
 	if d.HasChange("parameter_group_id") {
 		oldRaw, newRaw := d.GetChange("parameter_group_id")
@@ -536,97 +493,71 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	// === 5. Plan Upgrade (Requires DB to be STOPPED) ===
+	//  Plan Upgrade (Requires DB to be STOPPED) 
 	if d.HasChange("plan_name") {
-		oldPlan, newPlan := d.GetChange("plan_name")
-		log.Printf("[INFO] Plan change detected: %s -> %s", oldPlan.(string), newPlan.(string))
+	oldPlan, newPlan := d.GetChange("plan_name")
+	log.Printf("[INFO] Plan change detected: %s -> %s", oldPlan.(string), newPlan.(string))
 
-		// Ensure cluster is STOPPED before upgrading
-		status := d.Get("status").(string)
-		if strings.ToUpper(status) != "STOPPED" {
-			return diag.FromErr(fmt.Errorf("cannot upgrade plan: MariaDB must be STOPPED, current status is '%s'", status))
-		}
-
-		// Get software ID based on name/version
-		softwareName := d.Get("software_name").(string)
-		softwareVersion := d.Get("software_version").(string)
-		softwareID, err := apiClient.GetSoftwareId(projectID, location, softwareName, softwareVersion)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to get software ID for %s %s: %v", softwareName, softwareVersion, err))
-		}
-
-		// Get new template ID using the new plan
-		templateID, err := apiClient.GetTemplateId(projectID, location, newPlan.(string), fmt.Sprintf("%d", softwareID))
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("failed to get template ID for plan %s: %v", newPlan.(string), err))
-		}
-
-		// Trigger plan upgrade via API
-		if err := apiClient.UpgradeMariaDBPlan(id, projectID, location, templateID); err != nil {
-			return diag.FromErr(fmt.Errorf("failed to upgrade MariaDB plan: %v", err))
-		}
-
-		log.Printf("[INFO] Successfully upgraded %s %s to plan %s (template_id=%d)", softwareName, softwareVersion, newPlan, templateID)
+	// Ensure cluster is STOPPED before upgrading
+	status := d.Get("status").(string)
+	if strings.ToUpper(status) != "STOPPED" {
+		return diag.FromErr(fmt.Errorf("cannot upgrade plan: MariaDB must be STOPPED, current status is '%s'", status))
 	}
 
-	// === 6. Disk Expansion (Requires DB to be STOPPED) ===
-	if d.HasChange("disk_size") {
-		oldDiskRaw, newDiskRaw := d.GetChange("disk_size")
-		oldSize := oldDiskRaw.(int)
-		newSize := newDiskRaw.(int)
-
-		additionalSize := newSize - oldSize
-		if additionalSize <= 0 {
-			log.Printf("[INFO] No additional disk to add (old: %d GB, new: %d GB)", oldSize, newSize)
-		} else {
-			status := d.Get("status").(string)
-			if strings.ToUpper(status) != "STOPPED" {
-				return diag.FromErr(fmt.Errorf("cannot expand disk: MariaDB must be STOPPED, current status is '%s'", status))
-			}
-
-			if err := apiClient.ExpandMariaDBDisk(id, projectID, location, additionalSize); err != nil {
-				return diag.FromErr(fmt.Errorf("failed to expand MariaDB disk: %v", err))
-			}
-
-			log.Printf("[INFO] Disk expanded by %d GB (from %d GB to %d GB) for cluster %s", additionalSize, oldSize, newSize, id)
-		}
+	// Get software ID based on name/version
+	softwareName := d.Get("software_name").(string)
+	softwareVersion := d.Get("software_version").(string)
+	softwareID, err := apiClient.GetSoftwareId(projectID, location, softwareName, softwareVersion)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to get software ID for %s %s: %v", softwareName, softwareVersion, err))
 	}
 
-	// === Final Step: Refresh resource state after all updates ===
-	return resourceReadMariaDB(ctx, d, m)
+	// Get new template ID using the new plan
+	templateID, err := apiClient.GetTemplateId(projectID, location, newPlan.(string), fmt.Sprintf("%d", softwareID))
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("failed to get template ID for plan %s: %v", newPlan.(string), err))
+	}
+
+	// Trigger plan upgrade via API
+	if err := apiClient.UpgradeMariaDBPlan(id, projectID, location, templateID); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to upgrade MariaDB plan: %v", err))
+	}
+
+	log.Printf("[INFO] Successfully upgraded %s %s to plan %s (template_id=%d)", softwareName, softwareVersion, newPlan, templateID)
+
+	//  Update template_id in Terraform state to prevent drift
+	_ = d.Set("template_id", templateID)
 }
 
 
 
+	if d.HasChange("disk_size") {
+	additionalSize := d.Get("disk_size").(int)
+
+	if additionalSize > 0 {
+		status := d.Get("status").(string)
+		if strings.ToUpper(status) != "STOPPED" {
+			return diag.FromErr(fmt.Errorf("cannot expand disk: MariaDB must be STOPPED, current status is '%s'", status))
+		}
+
+		err := apiClient.ExpandMariaDBDisk(id, projectID, location, additionalSize)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to expand MariaDB disk: %v", err))
+		}
+
+		log.Printf("[INFO] Disk expanded by %d GB for cluster %s", additionalSize, id)
+
+		// Reset so that apply doesn't re-trigger
+		_ = d.Set("disk_size", 0)
+	} else {
+		log.Printf("[INFO] disk_size is 0, skipping expansion.")
+	}
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// expandStringList converts a generic Terraform interface{} list into a string slice.
-// This is commonly used when extracting list attributes from schema definitions (e.g., []interface{} to []string).
-// func expandStringList(input []interface{}) []string {
-// 	result := make([]string, len(input))
-// 	for i, v := range input {
-// 		result[i] = v.(string)
-// 	}
-// 	return result
-// }
-
+	
+	return resourceReadMariaDB(ctx, d, m)
+}
 
 func expandStringSet(list []interface{}) map[string]struct{} {
 	result := make(map[string]struct{})

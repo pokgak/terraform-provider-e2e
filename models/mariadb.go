@@ -1,31 +1,11 @@
 package models
 
-/*
-Package models
-
-This file contains all struct definitions used for interacting with the MariaDB API.
-
-It includes:
-- Response models for unmarshalling API responses
-- Request models for creating a MariaDB service
-- Nested types for database credentials, plans, IP settings, etc.
-*/
-
-// --------------------
-// API Response Structs
-// --------------------
-
-// Top-level API response wrapper
 type MariaDBResponse struct {
 	Code    int     `json:"code"`
 	Data    MariaDB `json:"data"`
 	Errors  any     `json:"errors"`
 	Message string  `json:"message"`
 }
-
-// -----------------------------
-// MariaDB Cluster State (GET)
-// -----------------------------
 
 type MariaDB struct {
 	ID                  int           `json:"id"`
@@ -45,16 +25,11 @@ type MariaDB struct {
 	IsEncryptionEnabled bool          `json:"isEncryptionEnabled"`
 }
 
-// Software version info (name, version, engine)
 type Software struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	Engine  string `json:"engine"`
 }
-
-// --------------------------
-// Master Node Details (GET)
-// --------------------------
 
 type MariaDBNode struct {
 	NodeName         string         `json:"node_name"`
@@ -82,22 +57,19 @@ type MariaDBNode struct {
 	CommittedDetails []CommittedSKU `json:"committed_details"`
 }
 
-// DB user credentials returned from GET response
 type MariaDBCreds struct {
 	ID       int       `json:"id"`
 	Username string    `json:"username"`
 	Database string    `json:"database"`
-	PGDetail *PGDetail `json:"pg_detail"` // pointer for null safety
+	PGDetail *PGDetail `json:"pg_detail"` 
 }
 
-// Parameter group detail (pg_detail)
 type PGDetail struct {
 	Name   string `json:"name"`
 	Family string `json:"family"`
 	PGID   int    `json:"pg_id"`
 }
 
-// Allowed IPs for firewall rules
 type AllowedIPs struct {
 	WhitelistedIPs      []string `json:"whitelisted_ips"`
 	TempIPs             []string `json:"temp_ips"`
@@ -105,10 +77,6 @@ type AllowedIPs struct {
 	TempIPsTags         []string `json:"temp_ips_tags"`
 	WhitelistingRunning bool     `json:"whitelisting_in_progress"`
 }
-
-// -------------------------------
-// Pricing Plan (Attached to Node)
-// -------------------------------
 
 type Plan struct {
 	Name                     string         `json:"name"`
@@ -125,7 +93,6 @@ type Plan struct {
 	CommittedSKUs            []CommittedSKU `json:"committed_sku"`
 }
 
-// Reserved instance pricing options
 type CommittedSKU struct {
 	ID       int     `json:"committed_sku_id"`
 	Name     string  `json:"committed_sku_name"`
@@ -135,24 +102,19 @@ type CommittedSKU struct {
 	Days     int     `json:"committed_days"`
 }
 
-// ------------------------------
-// MariaDB Create Request (POST)
-// ------------------------------
-
 type MariaDBCreateRequest struct {
 	Name                 string        `json:"name"`
 	SoftwareID           int           `json:"software_id"`
 	TemplateID           int           `json:"template_id"`
-	PublicIPRequired     bool          `json:"public_ip_required"`      // user input
+	PublicIPRequired     bool          `json:"public_ip_required"`      
 	Group                string        `json:"group"`
 	VPCs                 []VPCMetadata `json:"vpcs,omitempty"`
 	Database             DBConfig      `json:"database"`
-	PGID                 int           `json:"pg_id"`                   // Parameter Group ID
-	IsEncryptionEnabled  bool          `json:"isEncryptionEnabled"`     // Encryption flag
-	EncryptionPassphrase string        `json:"encryption_passphrase"`   // Empty if not provided
+	PGID                 int           `json:"pg_id"`                   
+	IsEncryptionEnabled  bool          `json:"isEncryptionEnabled"`     
+	EncryptionPassphrase string        `json:"encryption_passphrase"`   
 }
 
-// DB config (nested inside POST payload)
 type DBConfig struct {
 	User        string `json:"user"`
 	Password    string `json:"password"`
@@ -160,12 +122,8 @@ type DBConfig struct {
 	DBaaSNumber int    `json:"dbaas_number"`
 }
 
-// ------------------------------
-// VPC Attach/Detach Payloads
-// ------------------------------
-
 type AttachDetachVPCRequest struct {
-	Action string        `json:"action"` // "attach" or "detach"
+	Action string        `json:"action"` 
 	VPCs   []VPCMetadata `json:"vpcs"`
 }
 
@@ -175,18 +133,14 @@ type VPCMetadata struct {
 	IPv4CIDR  string `json:"ipv4_cidr"`
 }
 
-// Used for attaching or detaching a parameter group
 type ParameterGroupRequest struct {
-	Action string `json:"action"` // "add" or "remove"
+	Action string `json:"action"` 
 }
 
-//tto upgrade plan of a MariaDB cluster
 type UpgradePlanRequest struct {
 	TemplateID int `json:"template_id"`
 }
 
-
-// DiskUpgradeRequest is used to specify additional disk size to add to a MariaDB cluster
 type DiskUpgradeRequest struct {
 	Size int `json:"size"`
 }
