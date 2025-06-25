@@ -183,3 +183,9 @@ type MySQlPlanUpgradeAction struct {
 type MYSQLExpandDisk struct {
 	Size int `json:"size"`
 }
+
+type VPC struct {
+	VpcName    string  `json:"vpc_name,omitempty"`
+	Ipv4_cidr  string  `json:"ipv4_cidr,omitempty"`
+	Network_id float64 `json:"network_id,omitempty"`
+}

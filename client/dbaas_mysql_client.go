@@ -3,10 +3,8 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
@@ -16,29 +14,22 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] client | error unmarshalling JSON: %s =========", err)
 	}
 
 	UrlEndPoint := c.Api_endpoint + "/rds/cluster/"
 
 	req, err := http.NewRequest("POST", UrlEndPoint, &buf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] client | error while creating http request: %v=========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", item.Location)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, item.Location)
 
-	req.URL.RawQuery = params.Encode()
-
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, fmt.Errorf("======== [ERROR] error while creating http request =========: %s =========", err)
+		return nil, fmt.Errorf("======== [ERROR] error while making http request =========: %s =========", err)
 	}
 	err = CheckResponseStatus(response)
 	if err != nil {
@@ -56,105 +47,14 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	return jsonRes, nil
 }
 
-func (c *Client) GetSoftwareId(project_id string, location string, name string, version string) (int, error) {
-	url := c.Api_endpoint + "rds/plans/"
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return -1, err
-	}
-
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	SetBasicHeaders(c.Auth_token, req)
-
-	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] error inside GetSoftwareId =========: %s =========", err)
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return -1, err
-	}
-
-	var res models.PlanResponse
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] inside GetSoftwareId | error while unmarshalling =: %s =========", err)
-	}
-
-	for _, item := range res.Data.DatabaseEngines {
-		if item.EngineName == name && item.EngineVersion == version {
-			return item.EngineID, nil
-		}
-	}
-
-	return -1, errors.New("===== [ERROR] matching engine not found ==========")
-}
-
-func (c *Client) GetTemplateId(project_id string, location string, plan string, software_id string) (int, error) {
-	url := c.Api_endpoint + "rds/plans/"
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return -1, err
-	}
-
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	params.Add("software_id", software_id)
-	req.URL.RawQuery = params.Encode()
-
-	SetBasicHeaders(c.Auth_token, req)
-
-	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] error inside GetTemplateId =========: %s =========", err)
-	}
-	defer response.Body.Close()
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return -1, err
-	}
-
-	var res models.PlanResponse
-	err = json.Unmarshal(body, &res)
-	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] inside GetTemplateId | error while unmarshalling =: %s =========", err)
-	}
-
-	for _, item := range res.Data.TemplatePlans {
-		if item.PlanName == plan {
-			return item.PlanTemplateID, nil
-		}
-	}
-
-	return -1, errors.New("=======[ERROR] matching plan not found ============")
-}
-
 func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location string) (*models.ResponseMySql, error) {
 	urlGetDBaaSMySQL := c.Api_endpoint + "rds/cluster/" + mySqlDBaaSId + "/"
 	req, err := http.NewRequest("GET", urlGetDBaaSMySQL, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] client | error while creating http request: %v=========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -181,18 +81,13 @@ func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location 
 
 func (c *Client) DeleteMySqlDBaaS(mySqlDBaaSId string, project_id string, location string) (map[string]interface{}, error) {
 	urlDBaaSMySql := c.Api_endpoint + "rds/cluster/" + mySqlDBaaSId + "/"
-	log.Printf("[INFO] %s", urlDBaaSMySql)
 	req, err := http.NewRequest("DELETE", urlDBaaSMySql, nil)
 	if err != nil {
 		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error while making http request: %s =========", err)
@@ -217,12 +112,8 @@ func (c *Client) ResumeMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 		return nil, fmt.Errorf("======== [ERROR] ResumeMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -250,12 +141,8 @@ func (c *Client) StopMySqlDBaaS(mySqlDBaaSId string, project_id string, location
 		return nil, fmt.Errorf("======== [ERROR] StopMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -283,12 +170,8 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 		return nil, fmt.Errorf("======== [ERROR] RestartMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -322,12 +205,8 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -361,12 +240,8 @@ func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId s
 		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -394,12 +269,8 @@ func (c *Client) AttachPGToMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId stri
 		return nil, fmt.Errorf("======== [ERROR] AttachPGToMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -427,12 +298,8 @@ func (c *Client) DetachPGFromMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId st
 		return nil, fmt.Errorf("======== [ERROR] DetachPGFromMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -460,12 +327,8 @@ func (c *Client) AttachPublicIPToMySql(mySqlDBaaSId string, project_id string, l
 		return nil, fmt.Errorf("======== [ERROR] AttachPublicIPToMySql | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -493,12 +356,8 @@ func (c *Client) DetachPublicIPFromMySql(mySqlDBaaSId string, project_id string,
 		return nil, fmt.Errorf("======== [ERROR] DetachPublicIPFromMySql | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("location", location)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -534,14 +393,7 @@ func (c *Client) UpgradeMySQLPlan(dbaas_id string, template_id int, project_id s
 		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -574,14 +426,7 @@ func (c *Client) ExpandMySQLDBaaSDisk(dbaas_id string, size int, project_id stri
 		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error while creating http request: %s =========", err)
 	}
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
