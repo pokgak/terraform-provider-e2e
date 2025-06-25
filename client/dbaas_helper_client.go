@@ -23,12 +23,12 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 
 	req, err = c.AddParamsAndHeader(req, location, project_id)
 	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] error while setting parameters and headers =========: %s =========", err)
+		return -1, fmt.Errorf(" [ERROR] error while setting parameters and headers =: %s ", err)
 	}
 
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] error inside GetSoftwareId =========: %s =========", err)
+		return -1, fmt.Errorf(" [ERROR] error inside GetSoftwareId =: %s ", err)
 	}
 	defer response.Body.Close()
 
@@ -40,7 +40,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 	var res models.PlanResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] inside GetSoftwareId | error while unmarshalling =: %s =========", err)
+		return -1, fmt.Errorf(" [ERROR] inside GetSoftwareId | error while unmarshalling =: %s ", err)
 	}
 
 	for _, item := range res.Data.DatabaseEngines {
@@ -49,7 +49,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 		}
 	}
 
-	return -1, errors.New("===== [ERROR] matching engine not found ==========")
+	return -1, errors.New(" [ERROR] matching engine not found ")
 
 }
 
@@ -73,7 +73,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] error inside GetTemplateId =========: %s =========", err)
+		return -1, fmt.Errorf(" [ERROR] error inside GetTemplateId =: %s ", err)
 	}
 	defer response.Body.Close()
 
@@ -85,7 +85,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 	var res models.PlanResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return -1, fmt.Errorf("======== [ERROR] inside GetTemplateId | error while unmarshalling =: %s =========", err)
+		return -1, fmt.Errorf(" [ERROR] inside GetTemplateId | error while unmarshalling =: %s ", err)
 	}
 
 	for _, item := range res.Data.TemplatePlans {
@@ -94,7 +94,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 		}
 	}
 
-	return -1, errors.New("=======[ERROR] matching plan not found ============")
+	return -1, errors.New("[ERROR] matching plan not found ")
 
 }
 
@@ -108,7 +108,7 @@ func (c *Client) ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}) (
 		}
 		data := vpc_detail.Data
 		if data.State != "Active" {
-			return nil, fmt.Errorf("Can not attach vpc currently, vpc is in %s state", data.State)
+			return nil, fmt.Errorf("[ERROR] Can not attach vpc currently, vpc is in %s state", data.State)
 		}
 		r := models.VPC{
 			Network_id: data.Network_id,

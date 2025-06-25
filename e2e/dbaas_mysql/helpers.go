@@ -43,7 +43,7 @@ func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string,
 
 		dbaasInfo, err := apiClient.GetMySqlDbaas(dbaasID, project_id, location)
 		if err != nil {
-			return fmt.Errorf("======[ERROR] error while fetching dbaas instance details: %s=====", err)
+			return fmt.Errorf("[ERROR] error while fetching dbaas instance details: %s", err)
 		}
 
 		status := dbaasInfo.Data.Status
@@ -53,5 +53,5 @@ func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string,
 		}
 	}
 
-	return fmt.Errorf("===== [INFO] timeout: MySQL DBaaS did not reach SUSPENDED state in time, please wait for some more time and then hit TERRAFORM APPLY again ========")
+	return fmt.Errorf("[INFO] timeout: MySQL DBaaS did not reach SUSPENDED state in time, please wait for some more time and then hit TERRAFORM APPLY again")
 }
