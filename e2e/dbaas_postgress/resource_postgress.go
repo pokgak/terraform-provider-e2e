@@ -203,7 +203,6 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	// Construct payload
 	var pgID *int
 	if v, ok := d.GetOk("parameter_group_id"); ok {
 		id := v.(int)
@@ -236,7 +235,6 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		payload.VPCs = make([]models.VPC, 0)
 	}
 
-	// API call
 	res, err := apiClient.CreatePostgressDB(payload, project_id, location)
 	if err != nil {
 		return diag.FromErr(err)
@@ -254,7 +252,6 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.Errorf("Invalid 'data' field in response, expected object but got something else")
 	}
 
-	// Set ID and basic fields
 	id := int(data["id"].(float64))
 	d.SetId(strconv.Itoa(id))
 	d.Set("id", id)

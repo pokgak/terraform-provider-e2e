@@ -28,7 +28,7 @@ func (c Client) CreatePostgressDB(payload models.DBCreateRequest, project_id str
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] CLIENT NEW DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] CLIENT NEW DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 
@@ -65,7 +65,7 @@ func (c Client) GetPostgressDB(id string, project_id string, location string) (m
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] READ DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] READ DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 
@@ -102,7 +102,7 @@ func (c Client) DeletePostgressDB(id string, project_id string, location string)
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] DELETE DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] DELETE DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (c Client) StopPostgressDB(id string, project_id string, location string) e
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -158,7 +158,7 @@ func (c Client) StartPostgressDB(id string, project_id string, location string) 
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] START DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] START DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func (c Client) RestartPostgressDB(id string, project_id string, location string
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] RESTART DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] RESTART DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -214,7 +214,7 @@ func (c Client) AttachPublicIpPostgressDB(id string, project_id string, location
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func (c Client) DetachPublicIpPostgressDB(id string, project_id string, location
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (c Client) AttachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] ATTACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] ATTACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -308,7 +308,7 @@ func (c Client) DetachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("\n\n[INFO] DETACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
+	log.Printf("\n\n[INFO] DETACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v  \n\n", response)
 
 	if err != nil {
 		return err
@@ -340,8 +340,7 @@ func (c *Client) UpgradePostgressPlan(dbaas_id string, template_id int, project_
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("[INFO] CLIENT UPGRADE POSTGRESS PLAN | request = %+v", req)
-	log.Printf("[INFO] CLIENT UPGRADE POSTGRESS PLAN | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	log.Printf("[INFO] CLIENT UPGRADE POSTGRESS PLAN | STATUS_CODE: %+v\n", response)
 	if err == nil {
 		err = CheckResponseStatus(response)
 	}
@@ -364,8 +363,7 @@ func (c *Client) UpdateParameterGroup(dbaas_id string, pg_id string, project_id 
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("[INFO] CLIENT UpdateParameterGroup POSTGRESS  | request = %+v", req)
-	log.Printf("[INFO] CLIENT UpdateParameterGroup POSTGRESS  | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	log.Printf("[INFO] CLIENT UpdateParameterGroup POSTGRESS  | STATUS_CODE: %+v \n\n", response)
 	if err == nil {
 		err = CheckResponseStatus(response)
 	}
@@ -393,8 +391,7 @@ func (c *Client) UpgradeDiskStorage(dbaas_id string, size int, project_id string
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("CLIENT UpgradeDiskStorage POSTGRESS  | request = %+v", req)
-	log.Printf("CLIENT UpgradeDiskStorage POSTGRESS  | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	log.Printf("CLIENT UpgradeDiskStorage POSTGRESS  | STATUS_CODE: %+v \n\n", response)
 	if err == nil {
 		err = CheckResponseStatus(response)
 	}
