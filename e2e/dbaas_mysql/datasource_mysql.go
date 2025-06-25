@@ -2,6 +2,7 @@ package dbaasmysql
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
@@ -102,7 +103,7 @@ func dataSourceReadMySQL(ctx context.Context, d *schema.ResourceData, m interfac
 
 	res, err := apiClient.GetMySqlDbaas(dbaasID, projectID, location)
 	if err != nil {
-		return diag.FromErr(err)
+		return diag.FromErr(fmt.Errorf("=====[ERROR] error while fteching dbaas instance details: %s=======", err))
 	}
 
 	mysql := res.Data

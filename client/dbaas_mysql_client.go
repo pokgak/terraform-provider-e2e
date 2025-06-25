@@ -20,7 +20,6 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	}
 
 	UrlEndPoint := c.Api_endpoint + "/rds/cluster/"
-	log.Printf("[INFO] CLIENT NEWMYSQLDB | Endpoint: %s", UrlEndPoint)
 
 	req, err := http.NewRequest("POST", UrlEndPoint, &buf)
 	if err != nil {
@@ -39,11 +38,11 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] error while creating http request =========: %s =========", err)
 	}
 	err = CheckResponseStatus(response)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] error while checking response code =========: %s =========", err)
 	}
 	defer response.Body.Close()
 	resBody, _ := io.ReadAll(response.Body)
@@ -52,7 +51,7 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] error while unmarshling response =========: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -75,8 +74,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		log.Printf("[INFO] error inside GetSoftwareId")
-		return -1, err
+		return -1, fmt.Errorf("======== [ERROR] error inside GetSoftwareId =========: %s =========", err)
 	}
 	defer response.Body.Close()
 
@@ -88,8 +86,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 	var res models.PlanResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("[INFO] inside GetSoftwareId | error while unmarshalling")
-		return -1, err
+		return -1, fmt.Errorf("======== [ERROR] inside GetSoftwareId | error while unmarshalling =: %s =========", err)
 	}
 
 	for _, item := range res.Data.DatabaseEngines {
@@ -98,8 +95,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 		}
 	}
 
-	log.Printf("[INFO] ---- SOFTWARE ID ---- inside GetSoftwareId | error NOT FOUND")
-	return -1, errors.New("matching engine not found")
+	return -1, errors.New("===== [ERROR] matching engine not found ==========")
 }
 
 func (c *Client) GetTemplateId(project_id string, location string, plan string, software_id string) (int, error) {
@@ -121,8 +117,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		log.Printf("[INFO] error inside GetTemplateId")
-		return -1, err
+		return -1, fmt.Errorf("======== [ERROR] error inside GetTemplateId =========: %s =========", err)
 	}
 	defer response.Body.Close()
 
@@ -134,8 +129,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 	var res models.PlanResponse
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("[INFO] inside GetTemplateId | error while unmarshalling")
-		return -1, err
+		return -1, fmt.Errorf("======== [ERROR] inside GetTemplateId | error while unmarshalling =: %s =========", err)
 	}
 
 	for _, item := range res.Data.TemplatePlans {
@@ -144,8 +138,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 		}
 	}
 
-	log.Printf("[INFO] ---- Template ID ---- inside GetTemplateId | error NOT FOUND")
-	return -1, errors.New("matching plan not found")
+	return -1, errors.New("=======[ERROR] matching plan not found ============")
 }
 
 func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location string) (*models.ResponseMySql, error) {
@@ -165,25 +158,22 @@ func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location 
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		log.Printf("[ERROR] client | error making request in GetMySqlDbaas: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] client | error making request in GetMySqlDbaas: %v=========", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] client | error reading response body: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] client | error reading response body: %v=========", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned non-200 status code: %d - body: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("==== [ERROR] API returned non-200 status code: %d - body: %s =========", resp.StatusCode, string(body))
 	}
 
 	var res models.ResponseMySql
 	if err := json.Unmarshal(body, &res); err != nil {
-		log.Printf("[ERROR] GetMySqlDbaas | error unmarshalling JSON: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] GetMySqlDbaas | error unmarshalling JSON: %s =========", err)
 	}
 
 	return &res, nil
@@ -194,7 +184,7 @@ func (c *Client) DeleteMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 	log.Printf("[INFO] %s", urlDBaaSMySql)
 	req, err := http.NewRequest("DELETE", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -205,7 +195,7 @@ func (c *Client) DeleteMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 	SetBasicHeaders(c.Auth_token, req)
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error while making http request: %s =========", err)
 	}
 	defer response.Body.Close()
 	resBody, _ := io.ReadAll(response.Body)
@@ -214,7 +204,7 @@ func (c *Client) DeleteMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -224,7 +214,7 @@ func (c *Client) ResumeMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ResumeMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -236,7 +226,7 @@ func (c *Client) ResumeMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ResumeMySqlDBaaS | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -247,7 +237,7 @@ func (c *Client) ResumeMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ResumeMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -257,7 +247,7 @@ func (c *Client) StopMySqlDBaaS(mySqlDBaaSId string, project_id string, location
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] StopMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -269,7 +259,7 @@ func (c *Client) StopMySqlDBaaS(mySqlDBaaSId string, project_id string, location
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] StopMySqlDBaaS  | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -280,7 +270,7 @@ func (c *Client) StopMySqlDBaaS(mySqlDBaaSId string, project_id string, location
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] StopMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -290,7 +280,7 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] RestartMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -302,7 +292,7 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] RestartMySqlDBaaS | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -313,7 +303,7 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] RestartMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -322,14 +312,14 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error while encoding buffer: %s =========", err)
 	}
 
 	urlDBaaSMySql := c.Api_endpoint + "rds/cluster/" + mySqlDBaaSId + "/vpc-attach/"
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, &buf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -341,7 +331,7 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -352,7 +342,7 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -361,14 +351,14 @@ func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId s
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error while encoding buffer: %s =========", err)
 	}
 
 	urlDBaaSMySql := c.Api_endpoint + "rds/cluster/" + mySqlDBaaSId + "/vpc-detach/"
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, &buf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -380,7 +370,7 @@ func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId s
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -391,7 +381,7 @@ func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId s
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -401,7 +391,7 @@ func (c *Client) AttachPGToMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId stri
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPGToMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -413,7 +403,7 @@ func (c *Client) AttachPGToMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId stri
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPGToMySqlDBaaS | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -424,7 +414,7 @@ func (c *Client) AttachPGToMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId stri
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPGToMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -434,7 +424,7 @@ func (c *Client) DetachPGFromMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId st
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPGFromMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -446,7 +436,7 @@ func (c *Client) DetachPGFromMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId st
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPGFromMySqlDBaaS | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -457,7 +447,7 @@ func (c *Client) DetachPGFromMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId st
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPGFromMySqlDBaaS | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -467,7 +457,7 @@ func (c *Client) AttachPublicIPToMySql(mySqlDBaaSId string, project_id string, l
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPublicIPToMySql | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -479,7 +469,7 @@ func (c *Client) AttachPublicIPToMySql(mySqlDBaaSId string, project_id string, l
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPublicIPToMySql | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -490,7 +480,7 @@ func (c *Client) AttachPublicIPToMySql(mySqlDBaaSId string, project_id string, l
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] AttachPublicIPToMySql | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -500,7 +490,7 @@ func (c *Client) DetachPublicIPFromMySql(mySqlDBaaSId string, project_id string,
 
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPublicIPFromMySql | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -512,7 +502,7 @@ func (c *Client) DetachPublicIPFromMySql(mySqlDBaaSId string, project_id string,
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPublicIPFromMySql | error while making http request: %s =========", err)
 	}
 
 	defer response.Body.Close()
@@ -523,7 +513,7 @@ func (c *Client) DetachPublicIPFromMySql(mySqlDBaaSId string, project_id string,
 	var jsonRes map[string]interface{}
 	err = json.Unmarshal(resBytes, &jsonRes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] DetachPublicIPFromMySql | error unmarshalling JSON: %s =========", err)
 	}
 	return jsonRes, nil
 }
@@ -535,14 +525,13 @@ func (c *Client) UpgradeMySQLPlan(dbaas_id string, template_id int, project_id s
 
 	dbaasAction, err := json.Marshal(dbaas_action)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error unmarshalling JSON: %s =========", err)
 	}
 
 	urlDBaaSMySql := c.Api_endpoint + "rds/cluster/" + dbaas_id + "/rds-upgrade/"
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, bytes.NewBuffer(dbaasAction))
 	if err != nil {
-		log.Printf("[INFO] error inside upgrade dbaas MySQL plan: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -556,38 +545,33 @@ func (c *Client) UpgradeMySQLPlan(dbaas_id string, template_id int, project_id s
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("CLIENT UPGRADE MySQL PLAN | request = %+v", req)
-	if response != nil {
-		log.Printf("CLIENT UPGRADE MySQL PLAN | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	if err != nil {
+		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error while making http request: %s =========", err)
 	}
 
-	if err == nil {
-		err = CheckResponseStatus(response)
-	}
+	err = CheckResponseStatus(response)
 
 	if err != nil {
-		log.Printf("[INFO] error inside upgrade MySQL plan after CheckResponseStatus: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error inside upgrade MySQL plan after CheckResponseStatus: %s =========", err)
 	}
 
 	return response, nil
 }
 
-func (c *Client) ExpnadDisk(dbaas_id string, size int, project_id string, location string) (interface{}, error) {
+func (c *Client) ExpandMySQLDBaaSDisk(dbaas_id string, size int, project_id string, location string) (interface{}, error) {
 	dbaas_action := models.MYSQLExpandDisk{
 		Size: size,
 	}
 
 	dbaasAction, err := json.Marshal(dbaas_action)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error unmarshalling JSON: %s =========", err)
 	}
 
 	urlDBaaSMySql := c.Api_endpoint + "rds/cluster/" + dbaas_id + "/disk-upgrade/"
 	req, err := http.NewRequest("PUT", urlDBaaSMySql, bytes.NewBuffer(dbaasAction))
 	if err != nil {
-		log.Printf("[INFO] error inside upgrade dbaas MySQL plan: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error while creating http request: %s =========", err)
 	}
 
 	params := req.URL.Query()
@@ -601,18 +585,14 @@ func (c *Client) ExpnadDisk(dbaas_id string, size int, project_id string, locati
 
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("CLIENT UPGRADE MySQL PLAN | request = %+v", req)
-	if response != nil {
-		log.Printf("CLIENT UPGRADE MySQL PLAN | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	if err != nil {
+		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error while creating http request: %s =========", err)
 	}
 
-	if err == nil {
-		err = CheckResponseStatus(response)
-	}
+	err = CheckResponseStatus(response)
 
 	if err != nil {
-		log.Printf("[INFO] error inside upgrade MySQL plan after CheckResponseStatus: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error inside upgrade MySQL plan after CheckResponseStatus: %s =========", err)
 	}
 
 	return response, nil
