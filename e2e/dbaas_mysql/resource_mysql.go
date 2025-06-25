@@ -142,7 +142,6 @@ func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*model
 
 	mySqlobject := models.MySqlCreate{
 		Name:                d.Get("dbaas_name").(string),
-		Plan:                d.Get("plan").(string),
 		Location:            d.Get("db_location").(string),
 		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
 		ParameterGroupId:    d.Get("parameter_group_id").(int),
@@ -328,7 +327,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			if err != nil {
 				return diag.FromErr(err)
 			}
-			attachObj := models.AttachDetachVPC{
+			attachObj := models.AttachVPCPayloadRequest{
 				Action: "attach",
 				Vpcs:   vpcDetails,
 			}
@@ -344,7 +343,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			if err != nil {
 				return diag.FromErr(err)
 			}
-			detachObj := models.AttachDetachVPC{
+			detachObj := models.AttachVPCPayloadRequest{
 				Action: "detach",
 				Vpcs:   vpcDetails,
 			}

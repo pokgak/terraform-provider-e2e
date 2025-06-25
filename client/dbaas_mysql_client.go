@@ -47,7 +47,7 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 	return jsonRes, nil
 }
 
-func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location string) (*models.ResponseMySql, error) {
+func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location string) (*models.DBResponse, error) {
 	urlGetDBaaSMySQL := c.Api_endpoint + "rds/cluster/" + mySqlDBaaSId + "/"
 	req, err := http.NewRequest("GET", urlGetDBaaSMySQL, nil)
 	if err != nil {
@@ -71,7 +71,7 @@ func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location 
 		return nil, fmt.Errorf("API returned non-200 status code: %d - body: %s ", resp.StatusCode, string(body))
 	}
 
-	var res models.ResponseMySql
+	var res models.DBResponse
 	if err := json.Unmarshal(body, &res); err != nil {
 		return nil, fmt.Errorf(" GetMySqlDbaas | error unmarshalling JSON: %s ", err)
 	}
@@ -191,7 +191,7 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 	return jsonRes, nil
 }
 
-func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId string, project_id string, location string) (map[string]interface{}, error) {
+func (c *Client) AttachVpcToMySql(item *models.AttachVPCPayloadRequest, mySqlDBaaSId string, project_id string, location string) (map[string]interface{}, error) {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
@@ -226,7 +226,7 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 	return jsonRes, nil
 }
 
-func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId string, project_id string, location string) (map[string]interface{}, error) {
+func (c *Client) DetachVpcFromMySql(item *models.AttachVPCPayloadRequest, mySqlDBaaSId string, project_id string, location string) (map[string]interface{}, error) {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
