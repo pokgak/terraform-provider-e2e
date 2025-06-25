@@ -15,13 +15,11 @@ import (
 func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, location string) (*models.MariaDB, error) {
 	url := c.Api_endpoint + "/rds/cluster/"
 
-	// Encode the payload
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(req); err != nil {
 		return nil, fmt.Errorf("failed to encode create payload: %v", err)
 	}
-
-	// Construct HTTP POST request
+	
 	httpReq, err := http.NewRequest("POST", url, payloadBuf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %v", err)
@@ -37,13 +35,11 @@ func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, loca
 	}
 	defer resp.Body.Close()
 
-	// Handle response status
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	// Decode successful response
 	var response models.MariaDBResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %v", err)
@@ -55,7 +51,6 @@ func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, loca
 func (c *Client) ReadMariaDB(id string, projectID string, location string) (*models.MariaDB, error) {
 	url := c.Api_endpoint + "/rds/cluster/" + id + "/"
 
-	// Build GET request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
@@ -66,20 +61,17 @@ func (c *Client) ReadMariaDB(id string, projectID string, location string) (*mod
 	log.Printf("[DEBUG] ReadMariaDB Request URL: %s", req.URL.String())
 	log.Printf("[DEBUG] ReadMariaDB Headers: %+v", req.Header)
 
-	// Execute GET request
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	// Handle failure status codes
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("read mariadb failed with status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	// Decode JSON response
 	var response models.MariaDBResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %v", err)
