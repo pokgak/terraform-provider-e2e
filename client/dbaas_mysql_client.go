@@ -24,7 +24,7 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 		return nil, fmt.Errorf("======== [ERROR] client | error while creating http request: %v=========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, item.Location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, item.Location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -54,7 +54,7 @@ func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location 
 		return nil, fmt.Errorf("======== [ERROR] client | error while creating http request: %v=========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -86,7 +86,7 @@ func (c *Client) DeleteMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 		return nil, fmt.Errorf("======== [ERROR] DeleteMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -112,7 +112,7 @@ func (c *Client) ResumeMySqlDBaaS(mySqlDBaaSId string, project_id string, locati
 		return nil, fmt.Errorf("======== [ERROR] ResumeMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -141,7 +141,7 @@ func (c *Client) StopMySqlDBaaS(mySqlDBaaSId string, project_id string, location
 		return nil, fmt.Errorf("======== [ERROR] StopMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -170,7 +170,7 @@ func (c *Client) RestartMySqlDBaaS(mySqlDBaaSId string, project_id string, locat
 		return nil, fmt.Errorf("======== [ERROR] RestartMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -205,7 +205,7 @@ func (c *Client) AttachVpcToMySql(item *models.AttachDetachVPC, mySqlDBaaSId str
 		return nil, fmt.Errorf("======== [ERROR] AttachVpcToMySql | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -240,7 +240,7 @@ func (c *Client) DetachVpcFromMySql(item *models.AttachDetachVPC, mySqlDBaaSId s
 		return nil, fmt.Errorf("======== [ERROR] DetachVpcFromMySql | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -269,7 +269,7 @@ func (c *Client) AttachPGToMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId stri
 		return nil, fmt.Errorf("======== [ERROR] AttachPGToMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -298,7 +298,7 @@ func (c *Client) DetachPGFromMySqlDBaaS(mySqlDBaaSId string, ParameterGroupId st
 		return nil, fmt.Errorf("======== [ERROR] DetachPGFromMySqlDBaaS | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -327,7 +327,7 @@ func (c *Client) AttachPublicIPToMySql(mySqlDBaaSId string, project_id string, l
 		return nil, fmt.Errorf("======== [ERROR] AttachPublicIPToMySql | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -356,7 +356,7 @@ func (c *Client) DetachPublicIPFromMySql(mySqlDBaaSId string, project_id string,
 		return nil, fmt.Errorf("======== [ERROR] DetachPublicIPFromMySql | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -393,7 +393,7 @@ func (c *Client) UpgradeMySQLPlan(dbaas_id string, template_id int, project_id s
 		return nil, fmt.Errorf("======== [ERROR] UpgradeMySQLPlan | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -426,7 +426,7 @@ func (c *Client) ExpandMySQLDBaaSDisk(dbaas_id string, size int, project_id stri
 		return nil, fmt.Errorf("======== [ERROR] ExpandMySQLDBaaSDisk | error while creating http request: %s =========", err)
 	}
 
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
