@@ -24,7 +24,7 @@ func (c Client) CreatePostgressDB(payload models.DBCreateRequest, project_id str
 	if err != nil {
 		return nil, err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -61,7 +61,7 @@ func (c Client) GetPostgressDB(id string, project_id string, location string) (m
 	if err != nil {
 		return nil, err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -98,7 +98,7 @@ func (c Client) DeletePostgressDB(id string, project_id string, location string)
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -126,7 +126,7 @@ func (c Client) StopPostgressDB(id string, project_id string, location string) e
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -154,7 +154,7 @@ func (c Client) StartPostgressDB(id string, project_id string, location string) 
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -182,7 +182,7 @@ func (c Client) RestartPostgressDB(id string, project_id string, location string
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -210,7 +210,7 @@ func (c Client) AttachPublicIpPostgressDB(id string, project_id string, location
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -238,7 +238,7 @@ func (c Client) DetachPublicIpPostgressDB(id string, project_id string, location
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -271,7 +271,7 @@ func (c Client) AttachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -304,7 +304,7 @@ func (c Client) DetachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 	if err != nil {
 		return err
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -336,7 +336,7 @@ func (c *Client) UpgradePostgressPlan(dbaas_id string, template_id int, project_
 	if err != nil {
 		log.Printf("[INFO] error inside upgrade dbaas postgress plan")
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -360,7 +360,7 @@ func (c *Client) UpdateParameterGroup(dbaas_id string, pg_id string, project_id 
 	if err != nil {
 		log.Printf("[INFO] error inside UpdateParameterGroup dbaas postgress plan")
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
@@ -389,7 +389,7 @@ func (c *Client) UpgradeDiskStorage(dbaas_id string, size int, project_id string
 	if err != nil {
 		log.Printf("[ERROR] error inside upgrade disk storage")
 	}
-	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 

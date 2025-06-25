@@ -13,18 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func setParamsAndHeaders(req *http.Request, Api_key string, Auth_token string, project_id string, location string) *http.Request {
-	params := req.URL.Query()
-	params.Add("apikey", Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-	req.Header.Add("Authorization", "Bearer "+Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("User-Agent", "terraform-e2e")
-	return req
-}
-
 func (c *Client) GetSoftwareId(project_id string, location string, name string, version string) (int, error) {
 
 	urlGetReserveIps := c.Api_endpoint + "rds/plans/"
