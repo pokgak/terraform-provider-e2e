@@ -19,8 +19,6 @@ type PostgressDiskAction struct {
 	Size int `json:"size"`
 }
 
-// ------------------ Template Plan --------------------
-
 type PlanTemplate struct {
 	PlanName             string             `json:"name"`
 	PlanDisplayPrice     string             `json:"price"`
@@ -50,8 +48,6 @@ type PlanCommittedSKU struct {
 	SKUEndDate      string  `json:"committed_upto_date"`
 	SKUDurationDays int     `json:"committed_days"`
 }
-
-// ------------------ DB Engine -----------------------
 
 type EngineDefinition struct {
 	EngineID          int     `json:"id"`

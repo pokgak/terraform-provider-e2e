@@ -1,20 +1,6 @@
 package postgres
 
 import (
-	// "context"
-
-	//"time"
-	// "github.com/e2eterraformprovider/terraform-provider-e2e/client"
-	// "github.com/e2eterraformprovider/terraform-provider-e2e/constants"
-
-	// "github.com/e2eterraformprovider/terraform-provider-e2e/e2e/security_group"
-	// "github.com/e2eterraformprovider/terraform-provider-e2e/models"
-
-	// "github.com/hashicorp/terraform-plugin-log"
-	// "github.com/hashicorp/terraform-plugin-log/tflog"
-
-	// "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
 	"context"
 	"fmt"
 	"log"
@@ -27,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	// "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourcePostgresDBaaS() *schema.Resource {
@@ -59,7 +44,6 @@ func ResourcePostgresDBaaS() *schema.Resource {
 				Required:    true,
 				Description: "Name of DBaaS instance to be deployed",
 			},
-			//need to figure this out
 			"group": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -106,7 +90,6 @@ func ResourcePostgresDBaaS() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  1,
-							// figure out --> Description: "The DBaaS number identifier.",
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -219,8 +202,6 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	log.Printf(" ################### ids ######################################### %+d  %d", software_id, template_id)
 
 	// Construct payload
 	var pgID *int
@@ -522,8 +503,6 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 			return diag.FromErr(err)
 		}
 
-		log.Printf(" ################### ids ######################################### %+d  %d", software_id, template_id)
-
 		if d.HasChange("power_status") {
 			waitForPoweringOffOnDBaaS(m, dbaas_id.(string), project_id, location)
 		}
@@ -580,7 +559,6 @@ func resourceDeletePostgress(ctx context.Context, d *schema.ResourceData, m inte
 
 	dbaas_status := d.Get("status_title").(string)
 	dbaasId := d.Get("id").(string)
-	log.Printf(">>>>>>>>>>>>>>> DBAAS STATUS AND ID req = %s %s", dbaas_status, dbaasId)
 
 	if dbaas_status == constants.NODE_STATUS["CREATING"] {
 		return diag.Errorf("Node in %s state", dbaas_status)

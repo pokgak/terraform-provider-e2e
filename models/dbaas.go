@@ -1,15 +1,11 @@
 package models
 
-// ====== TOP-LEVEL API RESPONSE STRUCT ======
-
 type DBResponse struct {
 	Code    int    `json:"code"`
 	Data    DB     `json:"data"`
 	Errors  any    `json:"errors"`
 	Message string `json:"message"`
 }
-
-// ====== MAIN DB STRUCT FROM "data" ======
 
 type DB struct {
 	ID                  int      `json:"id"`
@@ -29,15 +25,11 @@ type DB struct {
 	IsEncryptionEnabled bool     `json:"isEncryptionEnabled"`
 }
 
-// ====== SOFTWARE DETAILS ======
-
 type Software struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 	Engine  string `json:"engine"`
 }
-
-// ====== MASTER NODE DETAILS ======
 
 type DBNode struct {
 	NodeName         string         `json:"node_name"`
@@ -65,15 +57,11 @@ type DBNode struct {
 	CommittedDetails []CommittedSKU `json:"committed_details"`
 }
 
-// ====== DATABASE CREDENTIALS ======
-
 type DBCreds struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Database string `json:"database"`
 }
-
-// ====== IP WHITELIST DETAILS ======
 
 type AllowedIPs struct {
 	WhitelistedIPs      []string `json:"whitelisted_ips"`
@@ -82,8 +70,6 @@ type AllowedIPs struct {
 	TempIPsTags         []string `json:"temp_ips_tags"`
 	WhitelistingRunning bool     `json:"whitelisting_in_progress"`
 }
-
-// ====== PLAN DETAILS ======
 
 type Plan struct {
 	Name                     string         `json:"name"`
@@ -100,8 +86,6 @@ type Plan struct {
 	CommittedSKUs            []CommittedSKU `json:"committed_sku"`
 }
 
-// ====== COMMITTED PRICING OPTIONS ======
-
 type CommittedSKU struct {
 	ID       int     `json:"committed_sku_id"`
 	Name     string  `json:"committed_sku_name"`
@@ -111,10 +95,6 @@ type CommittedSKU struct {
 	Days     int     `json:"committed_days"`
 }
 
-//
-// ====================== REQUEST PAYLOAD STRUCT ======================
-//
-
 type DBCreateRequest struct {
 	Name             string   `json:"name"`
 	SoftwareID       int      `json:"software_id"`
@@ -123,7 +103,7 @@ type DBCreateRequest struct {
 	Group            string   `json:"group"`
 	VPCs             []VPC    `json:"vpcs"`
 	Database         DBConfig `json:"database"`
-	PGID             *int     `json:"pg_id,omitempty"` // Pointer to make it optional
+	PGID             *int     `json:"pg_id,omitempty"`
 }
 
 type DBConfig struct {
@@ -133,7 +113,6 @@ type DBConfig struct {
 	DBaaSNumber int    `json:"dbaas_number"`
 }
 
-// AttachVPCPayloadRequest represents the request body for attaching VPCs
 type AttachVPCPayloadRequest struct {
 	Action string `json:"action"`
 	VPCs   []VPC  `json:"vpcs"`

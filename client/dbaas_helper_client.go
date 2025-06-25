@@ -13,6 +13,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+func setParamsAndHeaders(req *http.Request, Api_key string, Auth_token string, project_id string, location string) *http.Request {
+	params := req.URL.Query()
+	params.Add("apikey", Api_key)
+	params.Add("project_id", project_id)
+	params.Add("location", location)
+	req.URL.RawQuery = params.Encode()
+	req.Header.Add("Authorization", "Bearer "+Auth_token)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "terraform-e2e")
+	return req
+}
+
 func (c *Client) GetSoftwareId(project_id string, location string, name string, version string) (int, error) {
 
 	urlGetReserveIps := c.Api_endpoint + "rds/plans/"
@@ -30,7 +42,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		log.Printf("[INFO] error inside GetSoftwareId")
+		log.Printf("[ERROR] error inside GetSoftwareId")
 		return -1, err
 	}
 
@@ -41,7 +53,7 @@ func (c *Client) GetSoftwareId(project_id string, location string, name string, 
 	res := models.PlanResponse{}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("[INFO] inside GetSoftwareId | error while unmarshlling")
+		log.Printf("[ERROR] inside GetSoftwareId | error while unmarshlling")
 		return -1, err
 	}
 	data := res.Data.DatabaseEngines
@@ -74,7 +86,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 	response, err := c.HttpClient.Do(req)
 
 	if err != nil {
-		log.Printf("[INFO] error inside GetTemplateId")
+		log.Printf("[ERROR] error inside GetTemplateId")
 		return -1, err
 	}
 
@@ -83,7 +95,7 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 	res := models.PlanResponse{}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("[INFO] inside GetTemplateId | error while unmarshlling")
+		log.Printf("[ERROR] inside GetTemplateId | error while unmarshlling")
 		return -1, err
 	}
 	data := res.Data.TemplatePlans

@@ -20,25 +20,12 @@ func (c Client) CreatePostgressDB(payload models.DBCreateRequest, project_id str
 		return nil, err
 	}
 
-	log.Printf("\n\n PAYLOAD BUFFER %+v -------------------- >>>>>> n\n", payloadBuf)
-
 	req, err := http.NewRequest("POST", url, payloadBuf)
 	if err != nil {
 		return nil, err
 	}
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
-
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside CreatePostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] CLIENT NEW DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -74,18 +61,8 @@ func (c Client) GetPostgressDB(id string, project_id string, location string) (m
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside GetPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] READ DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -121,18 +98,8 @@ func (c Client) DeletePostgressDB(id string, project_id string, location string)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside DeletePostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] DELETE DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -159,18 +126,8 @@ func (c Client) StopPostgressDB(id string, project_id string, location string) e
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside StopPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -197,18 +154,8 @@ func (c Client) StartPostgressDB(id string, project_id string, location string) 
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside StartPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] START DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -235,18 +182,8 @@ func (c Client) RestartPostgressDB(id string, project_id string, location string
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside RestartPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] RESTART DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -273,18 +210,8 @@ func (c Client) AttachPublicIpPostgressDB(id string, project_id string, location
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside StopPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -311,18 +238,8 @@ func (c Client) DetachPublicIpPostgressDB(id string, project_id string, location
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside StopPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] STOP DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -350,24 +267,12 @@ func (c Client) AttachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 		return err
 	}
 
-	log.Printf("\n\n PAYLOAD BUFFER %+v -------------------- >>>>>> n\n", payloadBuf)
-
 	req, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside AttachVPCPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] ATTACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -395,24 +300,12 @@ func (c Client) DetachVPCPostgressDB(payload models.AttachVPCPayloadRequest, id 
 		return err
 	}
 
-	log.Printf("\n\n PAYLOAD BUFFER %+v -------------------- >>>>>> n\n", payloadBuf)
-
 	req, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("x-api-key", c.Api_key)
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-
-	log.Printf(">>>>>>>>>>>>>>> inside DetachVPCPostgressDB req = %+v", req)
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("\n\n[INFO] DETACH VPC DBAAS POSTGRESS | STATUS_CODE: %+v ==================***************\n\n", response)
@@ -443,18 +336,12 @@ func (c *Client) UpgradePostgressPlan(dbaas_id string, template_id int, project_
 	if err != nil {
 		log.Printf("[INFO] error inside upgrade dbaas postgress plan")
 	}
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("CLIENT UPGRADE POSTGRESS PLAN | request = %+v", req)
-	log.Printf("CLIENT UPGRADE POSTGRESS PLAN | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	log.Printf("[INFO] CLIENT UPGRADE POSTGRESS PLAN | request = %+v", req)
+	log.Printf("[INFO] CLIENT UPGRADE POSTGRESS PLAN | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
 	if err == nil {
 		err = CheckResponseStatus(response)
 	}
@@ -473,24 +360,18 @@ func (c *Client) UpdateParameterGroup(dbaas_id string, pg_id string, project_id 
 	if err != nil {
 		log.Printf("[INFO] error inside UpdateParameterGroup dbaas postgress plan")
 	}
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
-	log.Printf("CLIENT UpdateParameterGroup POSTGRESS  | request = %+v", req)
-	log.Printf("CLIENT UpdateParameterGroup POSTGRESS  | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
+	log.Printf("[INFO] CLIENT UpdateParameterGroup POSTGRESS  | request = %+v", req)
+	log.Printf("[INFO] CLIENT UpdateParameterGroup POSTGRESS  | STATUS_CODE: %d, response = %+v", response.StatusCode, response)
 	if err == nil {
 		err = CheckResponseStatus(response)
 	}
 
 	if err != nil {
-		log.Printf("[INFO] error inside UpdateParameterGroup after checkresponse")
+		log.Printf("[ERROR] error inside UpdateParameterGroup after checkresponse")
 		return err
 	}
 	return nil
@@ -506,16 +387,10 @@ func (c *Client) UpgradeDiskStorage(dbaas_id string, size int, project_id string
 	url := c.Api_endpoint + "rds/cluster/" + dbaas_id + "/disk-upgrade/"
 	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(dbaasAction))
 	if err != nil {
-		log.Printf("[INFO] error inside upgrade disk storage")
+		log.Printf("[ERROR] error inside upgrade disk storage")
 	}
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	params.Add("location", location)
-	req.URL.RawQuery = params.Encode()
-	req.Header.Add("Authorization", "Bearer "+c.Auth_token)
-	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	setParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
 	response, err := c.HttpClient.Do(req)
 
 	log.Printf("CLIENT UpgradeDiskStorage POSTGRESS  | request = %+v", req)
@@ -525,7 +400,7 @@ func (c *Client) UpgradeDiskStorage(dbaas_id string, size int, project_id string
 	}
 
 	if err != nil {
-		log.Printf("[INFO] error inside UpgradeDiskStorage after checkresponse")
+		log.Printf("[ERROR] error inside UpgradeDiskStorage after checkresponse")
 		return err
 	}
 	return nil
