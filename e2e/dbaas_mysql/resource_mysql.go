@@ -210,21 +210,19 @@ func ResourceCreateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] MYSQL DB CREATE | RESPONSE BODY | %+v", response)
-
 	dataRaw, ok := response["data"]
 	if !ok {
-		return diag.Errorf("[ERROR]missing 'data' field in response")
+		return diag.Errorf("missing 'data' field in response")
 	}
 
 	data, ok := dataRaw.(map[string]interface{})
 	if !ok {
-		return diag.Errorf("[ERROR]invalid type for 'data' field in response")
+		return diag.Errorf("invalid type for 'data' field in response")
 	}
 
 	idVal, idOK := data["id"].(float64)
 	if !idOK {
-		return diag.Errorf("[ERROR]id not found in response data")
+		return diag.Errorf("id not found in response data")
 	}
 
 	d.SetId(strconv.Itoa(int(idVal)))
@@ -238,7 +236,7 @@ func ResourceReadMySqlDB(ctx context.Context, d *schema.ResourceData, m interfac
 
 	res, err := apiClient.GetMySqlDbaas(d.Id(), d.Get("project_id").(string), d.Get("location").(string))
 	if err != nil {
-		return diag.Errorf("[ERROR] finding dbaas_mysql: %v", err)
+		return diag.Errorf("finding dbaas_mysql: %v", err)
 	}
 
 	data := res.Data
@@ -262,16 +260,16 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 
 	dbaasResp, err := apiClient.GetMySqlDbaas(mySqlDBaaSId, projectID, location)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("[ERROR] failed to fetch current DBaaS status: %v", err))
+		return diag.FromErr(fmt.Errorf("failed to fetch current DBaaS status: %v", err))
 	}
 
 	if dbaasResp == nil || dbaasResp.Data.Status == "" {
-		return diag.Errorf("[ERROR] invalid response from GetMySqlDbaas while checking status")
+		return diag.Errorf("invalid response from GetMySqlDbaas while checking status")
 	}
 
 	if dbaasResp.Data.Status == "CREATING" {
 		_ = ResourceReadMySqlDB(ctx, d, m)
-		return diag.Errorf("[ERROR] Cannot update MySQL DBaaS while it is in 'CREATING' state")
+		return diag.Errorf("Cannot update MySQL DBaaS while it is in 'CREATING' state")
 	}
 
 	if d.HasChange("status") {
@@ -279,24 +277,24 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 
 		if oldStatus == "CREATING" {
 			_ = ResourceReadMySqlDB(ctx, d, m)
-			return diag.Errorf("{ERROR} Cannot change status while DBaaS instance is still in 'CREATING' state")
+			return diag.Errorf("Cannot change status while DBaaS instance is still in 'CREATING' state")
 		}
 
 		switch newStatus {
 		case "start":
 			_, err := apiClient.ResumeMySqlDBaaS(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] failed to change status of MySQL DBaaS instance to start"))
+				return diag.FromErr(fmt.Errorf("failed to change status of MySQL DBaaS instance to start"))
 			}
 		case "stop":
 			_, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] failed to change status of MySQL DBaaS instance to stop"))
+				return diag.FromErr(fmt.Errorf("failed to change status of MySQL DBaaS instance to stop"))
 			}
 		case "restart":
 			_, err := apiClient.RestartMySqlDBaaS(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] failed to change status of MySQL DBaaS instance to restart"))
+				return diag.FromErr(fmt.Errorf("failed to change status of MySQL DBaaS instance to restart"))
 			}
 		}
 	}
@@ -333,7 +331,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			_, err = apiClient.AttachVpcToMySql(&attachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] failed to attach VPC(s) to MySQL DBaaS instance"))
+				return diag.FromErr(fmt.Errorf(" failed to attach VPC(s) to MySQL DBaaS instance"))
 			}
 		}
 
@@ -349,7 +347,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			_, err = apiClient.DetachVpcFromMySql(&detachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] failed to detach VPC(s) from MySQL DBaaS instance"))
+				return diag.FromErr(fmt.Errorf(" failed to detach VPC(s) from MySQL DBaaS instance"))
 			}
 		}
 	}
@@ -364,7 +362,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		if oldOK && newOK && oldInt == 0 && newInt != 0 {
 			_, err := apiClient.AttachPGToMySqlDBaaS(mySqlDBaaSId, strconv.Itoa(newInt), projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR]failed to attach PG ID %d to DBaaS: %v", newInt, err))
+				return diag.FromErr(fmt.Errorf("failed to attach PG ID %d to DBaaS: %v", newInt, err))
 			}
 		}
 
@@ -372,7 +370,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		if oldOK && newOK && oldInt != 0 && newInt == 0 {
 			_, err := apiClient.DetachPGFromMySqlDBaaS(mySqlDBaaSId, strconv.Itoa(oldInt), projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR]failed to detach PG ID %d from DBaaS: %v", oldInt, err))
+				return diag.FromErr(fmt.Errorf("failed to detach PG ID %d from DBaaS: %v", oldInt, err))
 			}
 		}
 	}
@@ -386,12 +384,12 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		if !oldBool && newBool {
 			_, err := apiClient.AttachPublicIPToMySql(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR]failed to attach public IP: %v", err))
+				return diag.FromErr(fmt.Errorf("failed to attach public IP: %v", err))
 			}
 		} else if oldBool && !newBool {
 			_, err := apiClient.DetachPublicIPFromMySql(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR]failed to detach public IP: %v", err))
+				return diag.FromErr(fmt.Errorf("failed to detach public IP: %v", err))
 			}
 		}
 	}
@@ -399,25 +397,25 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 	if d.HasChange("plan") {
 		_, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] failed to change status of MySQL DBaaS instance to stop: %s", err))
+			return diag.FromErr(fmt.Errorf(" failed to change status of MySQL DBaaS instance to stop: %s", err))
 		}
 
 		err = WaitForPoweringOffOnDBaaS(apiClient, mySqlDBaaSId, projectID, location)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] DBaaS instance did not reach SUSPENDED state: %s", err))
+			return diag.FromErr(fmt.Errorf(" DBaaS instance did not reach SUSPENDED state: %s", err))
 		}
 
 		prevPlan, currPlan := d.GetChange("plan")
 
 		projectIDRaw, ok := d.GetOk("project_id")
 		if !ok || projectIDRaw == nil {
-			return diag.Errorf("[ERROR] project_id is required but not set")
+			return diag.Errorf("project_id is required but not set")
 		}
 		project_id := projectIDRaw.(string)
 
 		locationRaw, ok := d.GetOk("location")
 		if !ok || locationRaw == nil {
-			return diag.Errorf("[ERROR] location is required but not set")
+			return diag.Errorf("location is required but not set")
 		}
 		location := locationRaw.(string)
 
@@ -437,12 +435,12 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 
 		software_id, err := apiClient.GetSoftwareId(project_id, location, "MySQL", database_version)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] error while fetching software id: %v", err))
+			return diag.FromErr(fmt.Errorf(" error while fetching software id: %v", err))
 		}
 
 		template_id, err := apiClient.GetTemplateId(project_id, location, plan, strconv.Itoa(software_id))
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] error while fetching template id: %v", err))
+			return diag.FromErr(fmt.Errorf(" error while fetching template id: %v", err))
 		}
 
 		log.Printf("[INFO] prevPlan: %s, currPlan: %s", prevPlan.(string), currPlan.(string))
@@ -456,19 +454,19 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		_, err = apiClient.UpgradeMySQLPlan(dbaas_id, template_id, project_id, location)
 		if err != nil {
 			d.Set("plan", prevPlan)
-			return diag.FromErr(fmt.Errorf("[ERROR] error while upgrading plan: %v", err))
+			return diag.FromErr(fmt.Errorf(" error while upgrading plan: %v", err))
 		}
 	}
 
 	if d.HasChange("size") {
 		_, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] failed to change status of MySQL DBaaS instance to stop: %s", err))
+			return diag.FromErr(fmt.Errorf(" failed to change status of MySQL DBaaS instance to stop: %s", err))
 		}
 
 		err = WaitForPoweringOffOnDBaaS(apiClient, mySqlDBaaSId, projectID, location)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf("[ERROR] DBaaS instance did not reach SUSPENDED state: %s", err))
+			return diag.FromErr(fmt.Errorf(" DBaaS instance did not reach SUSPENDED state: %s", err))
 		}
 
 		sizeRaw, ok := d.GetOk("size")
@@ -480,7 +478,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 
 			_, err := apiClient.ExpandMySQLDBaaSDisk(mySqlDBaaSId, size, projectID, location)
 			if err != nil {
-				return diag.FromErr(fmt.Errorf("[ERROR] error while expanding disk size: %s", err))
+				return diag.FromErr(fmt.Errorf(" error while expanding disk size: %s", err))
 			}
 		}
 	}
@@ -497,12 +495,12 @@ func ResourceDeleteMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 	currentState := d.Get("status").(string)
 
 	if currentState == "CREATING" {
-		return diag.Errorf("[ERROR]Cannot delete DBaaS: the database is still in 'CREATING' state")
+		return diag.Errorf("Cannot delete DBaaS: the database is still in 'CREATING' state")
 	}
 
 	_, err := apiClient.DeleteMySqlDBaaS(mySqlDBaaSId, d.Get("project_id").(string), d.Get("location").(string))
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("[ERROR] error while deleting dbaas instance: %s", err))
+		return diag.FromErr(fmt.Errorf(" error while deleting dbaas instance: %s", err))
 	}
 
 	d.SetId("")

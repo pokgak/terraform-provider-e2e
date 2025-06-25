@@ -17,11 +17,11 @@ func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *cl
 	for _, id := range vpc_list {
 		vpc_detail, err := apiClient.GetVpc(strconv.Itoa(id.(int)), d.Get("project_id").(string), d.Get("location").(string))
 		if err != nil {
-			return nil, fmt.Errorf("[ERROR] error while fetching vpc: %s", err)
+			return nil, fmt.Errorf("error while fetching vpc: %s", err)
 		}
 		data := vpc_detail.Data
 		if data.State != "Active" {
-			return nil, fmt.Errorf("[INFO] Can not attach vpc currently, vpc is in %s state", data.State)
+			return nil, fmt.Errorf("Can not attach vpc currently, vpc is in %s state", data.State)
 		}
 		r := models.VpcDetail{
 			Network_id: data.Network_id,
@@ -43,7 +43,7 @@ func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string,
 
 		dbaasInfo, err := apiClient.GetMySqlDbaas(dbaasID, project_id, location)
 		if err != nil {
-			return fmt.Errorf("[ERROR] error while fetching dbaas instance details: %s", err)
+			return fmt.Errorf("error while fetching dbaas instance details: %s", err)
 		}
 
 		status := dbaasInfo.Data.Status
@@ -53,5 +53,5 @@ func WaitForPoweringOffOnDBaaS(m interface{}, dbaasID string, project_id string,
 		}
 	}
 
-	return fmt.Errorf("[INFO] timeout: MySQL DBaaS did not reach SUSPENDED state in time, please wait for some more time and then hit TERRAFORM APPLY again")
+	return fmt.Errorf("timeout: MySQL DBaaS did not reach SUSPENDED state in time, please wait for some more time and then hit TERRAFORM APPLY again")
 }
