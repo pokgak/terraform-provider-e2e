@@ -68,7 +68,7 @@ func (c *Client) GetMySqlDbaas(mySqlDBaaSId string, project_id string, location 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("==== [ERROR] API returned non-200 status code: %d - body: %s ", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("[ERROR] API returned non-200 status code: %d - body: %s ", resp.StatusCode, string(body))
 	}
 
 	var res models.ResponseMySql
