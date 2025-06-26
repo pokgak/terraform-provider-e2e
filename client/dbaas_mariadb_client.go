@@ -12,7 +12,7 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 )
 
-func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, location string) (*models.MariaDB, error) {
+func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, location string) (*models.DB, error) {
 	url := c.Api_endpoint + "/rds/cluster/"
 
 	payloadBuf := new(bytes.Buffer)
@@ -40,7 +40,7 @@ func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, loca
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var response models.MariaDBResponse
+	var response models.DBResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %v", err)
 	}
@@ -48,7 +48,7 @@ func (c *Client) CreateMariaDB(req *models.MariaDBCreateRequest, projectID, loca
 	return &response.Data, nil
 }
 
-func (c *Client) ReadMariaDB(id string, projectID string, location string) (*models.MariaDB, error) {
+func (c *Client) ReadMariaDB(id string, projectID string, location string) (*models.DB, error) {
 	url := c.Api_endpoint + "/rds/cluster/" + id + "/"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -72,7 +72,7 @@ func (c *Client) ReadMariaDB(id string, projectID string, location string) (*mod
 		return nil, fmt.Errorf("read mariadb failed with status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	var response models.MariaDBResponse
+	var response models.DBResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %v", err)
 	}
@@ -205,7 +205,7 @@ func (c *Client) RestartMariaDB(id string, projectID string, location string) er
 
 func (c *Client) AttachVPCToMariaDB(id string, projectID string, location string, vpcIDs []string) error {
 	// Expand metadata for all VPC IDs
-	vpcMetaList, err := c.ExpandVpcList(vpcIDs, projectID, location)
+	vpcMetaList, err := c.ExpandMariaDBVpcList(vpcIDs, projectID, location)
 	if err != nil {
 		return fmt.Errorf("failed to expand VPC metadata: %v", err)
 	}
@@ -246,7 +246,7 @@ func (c *Client) AttachVPCToMariaDB(id string, projectID string, location string
 
 func (c *Client) DetachVPCFromMariaDB(id string, projectID string, location string, vpcIDs []string) error {
 	// Expand metadata for all VPC IDs
-	vpcMetaList, err := c.ExpandVpcList(vpcIDs, projectID, location)
+	vpcMetaList, err := c.ExpandMariaDBVpcList(vpcIDs, projectID, location)
 	if err != nil {
 		return fmt.Errorf("failed to expand VPC metadata: %v", err)
 	}

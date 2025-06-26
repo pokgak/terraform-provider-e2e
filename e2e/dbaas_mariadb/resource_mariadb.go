@@ -268,7 +268,7 @@ func resourceCreateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	// Expand VPC metadata required by backend (name, network_id, cidr)
 	var vpcList []models.VPCMetadata
 	if len(vpcIDs) > 0 {
-		vpcList, err = apiClient.ExpandVpcList(vpcIDs, projectID, location)
+		vpcList, err = apiClient.ExpandMariaDBVpcList(vpcIDs, projectID, location)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to expand VPC list during create: %v", err))
 		}

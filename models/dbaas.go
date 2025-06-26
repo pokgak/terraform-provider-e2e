@@ -1,28 +1,28 @@
 package models
 
-type MariaDBResponse struct {
-	Code    int     `json:"code"`
-	Data    MariaDB `json:"data"`
-	Errors  any     `json:"errors"`
-	Message string  `json:"message"`
+type DBResponse struct {
+	Code    int    `json:"code"`
+	Data    DB     `json:"data"`
+	Errors  any    `json:"errors"`
+	Message string `json:"message"`
 }
 
-type MariaDB struct {
-	ID                  int           `json:"id"`
-	Name                string        `json:"name"`
-	Status              string        `json:"status"`
-	StatusTitle         string        `json:"status_title"`
-	StatusActions       []string      `json:"status_actions"`
-	NumInstances        int           `json:"num_instances"`
-	Software            Software      `json:"software"`
-	MasterNode          MariaDBNode   `json:"master_node"`
-	ConnectivityDetail  string        `json:"connectivity_detail"`
-	VectorDBStatus      string        `json:"vector_database_status"`
-	ProjectName         string        `json:"project_name"`
-	SnapshotExist       bool          `json:"snapshot_exist"`
-	ZookeeperInstances  int           `json:"zookeeper_instances"`
-	SlaveInstances      int           `json:"slave_instances"`
-	IsEncryptionEnabled bool          `json:"isEncryptionEnabled"`
+type DB struct {
+	ID                  int      `json:"id"`
+	Name                string   `json:"name"`
+	Status              string   `json:"status"`
+	StatusTitle         string   `json:"status_title"`
+	StatusActions       []string `json:"status_actions"`
+	NumInstances        int      `json:"num_instances"`
+	Software            Software `json:"software"`
+	MasterNode          DBNode   `json:"master_node"`
+	ConnectivityDetail  string   `json:"connectivity_detail"`
+	VectorDBStatus      string   `json:"vector_database_status"`
+	ProjectName         string   `json:"project_name"`
+	SnapshotExist       bool     `json:"snapshot_exist"`
+	ZookeeperInstances  int      `json:"zookeeper_instances"`
+	SlaveInstances      int      `json:"slave_instances"`
+	IsEncryptionEnabled bool     `json:"isEncryptionEnabled"`
 }
 
 type Software struct {
@@ -31,7 +31,7 @@ type Software struct {
 	Engine  string `json:"engine"`
 }
 
-type MariaDBNode struct {
+type DBNode struct {
 	NodeName         string         `json:"node_name"`
 	InstanceID       int            `json:"instance_id"`
 	ClusterID        int            `json:"cluster_id"`
@@ -42,7 +42,7 @@ type MariaDBNode struct {
 	PrivateIPAddress string         `json:"private_ip_address"`
 	AllowedIPs       AllowedIPs     `json:"allowed_ip_address"`
 	ZabbixHostID     *int           `json:"zabbix_host_id"`
-	Database         MariaDBCreds   `json:"database"`
+	Database         DBCreds        `json:"database"`
 	RAM              string         `json:"ram"`
 	CPU              string         `json:"cpu"`
 	Disk             string         `json:"disk"`
@@ -57,11 +57,11 @@ type MariaDBNode struct {
 	CommittedDetails []CommittedSKU `json:"committed_details"`
 }
 
-type MariaDBCreds struct {
+type DBCreds struct {
 	ID       int       `json:"id"`
 	Username string    `json:"username"`
 	Database string    `json:"database"`
-	PGDetail *PGDetail `json:"pg_detail"` 
+	PGDetail *PGDetail `json:"pg_detail,omitempty"` 
 }
 
 type PGDetail struct {
@@ -121,6 +121,9 @@ type DBConfig struct {
 	Name        string `json:"name"`
 	DBaaSNumber int    `json:"dbaas_number"`
 }
+
+
+
 
 type AttachDetachVPCRequest struct {
 	Action string        `json:"action"` 

@@ -93,7 +93,7 @@ func (c *Client) GetTemplateId(projectID string, location string, planName strin
 	return -1, errors.New("matching plan not found")
 }
 
-func (c *Client) ExpandVpcList(vpcIDs []string, projectID, location string) ([]models.VPCMetadata, error) {
+func (c *Client) ExpandMariaDBVpcList(vpcIDs []string, projectID, location string) ([]models.VPCMetadata, error) {
 	var vpcDetails []models.VPCMetadata
 
 	for _, id := range vpcIDs {
