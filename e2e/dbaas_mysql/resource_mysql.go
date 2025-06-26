@@ -110,7 +110,7 @@ func ResourceMySql() *schema.Resource {
 				Optional:    true,
 				Description: "ID of parameter group that need to be attached",
 			},
-			"attach_public_ip": {
+			"public_ip_required": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
@@ -125,6 +125,12 @@ func ResourceMySql() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Disk size",
+			},
+			"group": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "",
+				Default:     "Default",
 			},
 		},
 
@@ -141,22 +147,21 @@ func ResourceMySql() *schema.Resource {
 func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*models.MySqlCreate, diag.Diagnostics) {
 
 	mySqlobject := models.MySqlCreate{
-		Name:                d.Get("dbaas_name").(string),
-		Location:            d.Get("db_location").(string),
-		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
-		ParameterGroupId:    d.Get("parameter_group_id").(int),
-		Version:             d.Get("version").(string),
-		AttachPublicIp:      d.Get("attach_public_ip").(bool),
+		Name:             d.Get("dbaas_name").(string),
+		ParameterGroupId: d.Get("parameter_group_id").(int),
+		PublicIPRequired: d.Get("public_ip_required").(bool),
+		Group:            d.Get("group").(string),
 	}
 
 	dbList := d.Get("database").([]interface{})
 	if len(dbList) > 0 {
 		dbMap := dbList[0].(map[string]interface{})
 
-		mySqlobject.Database = models.DatabaseDetail{
-			User:     dbMap["user"].(string),
-			Password: dbMap["password"].(string),
-			Name:     dbMap["name"].(string),
+		mySqlobject.Database = models.DBConfig{
+			User:        dbMap["user"].(string),
+			Password:    dbMap["password"].(string),
+			Name:        dbMap["name"].(string),
+			DBaaSNumber: dbMap["dbaas_number"].(int),
 		}
 
 	}
@@ -204,7 +209,7 @@ func ResourceCreateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		return diags
 	}
 
-	response, err := apiClient.NewMySqlDb(mySqlObj, d.Get("project_id").(string))
+	response, err := apiClient.NewMySqlDb(mySqlObj, d.Get("project_id").(string), d.Get("location").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -379,8 +384,8 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		}
 	}
 
-	if d.HasChange("attach_public_ip") {
-		oldVal, newVal := d.GetChange("attach_public_ip")
+	if d.HasChange("public_ip_required") {
+		oldVal, newVal := d.GetChange("public_ip_required")
 
 		oldBool := oldVal.(bool)
 		newBool := newVal.(bool)
@@ -388,13 +393,13 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		if !oldBool && newBool {
 			_, err := apiClient.AttachPublicIPToMySql(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				d.Set("attach_public_ip", oldVal)
+				d.Set("public_ip_required", oldVal)
 				return diag.FromErr(fmt.Errorf("failed to attach public IP: %v", err))
 			}
 		} else if oldBool && !newBool {
 			_, err := apiClient.DetachPublicIPFromMySql(mySqlDBaaSId, projectID, location)
 			if err != nil {
-				d.Set("attach_public_ip", oldVal)
+				d.Set("public_ip_required", oldVal)
 				return diag.FromErr(fmt.Errorf("failed to detach public IP: %v", err))
 			}
 		}

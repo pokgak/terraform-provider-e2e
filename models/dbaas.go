@@ -97,22 +97,21 @@ type CommittedSKU struct {
 }
 
 type MySqlCreate struct {
-	Name                string         `json:"name"`
-	Database            DatabaseDetail `json:"database"`
-	Vpcs                []VpcDetail    `json:"vpcs"`
-	SoftwareID          int            `json:"software_id"`
-	TemplateID          int            `json:"template_id"`
-	Location            string         `json:"location"`
-	IsEncryptionEnabled bool           `json:"is_encryption_enabled"`
-	ParameterGroupId    int            `json:"pg_id,omitempty"`
-	Version             string         `json:"db_version"`
-	AttachPublicIp      bool           `json:"attach_public_ip"`
+	Name             string      `json:"name"`
+	Database         DBConfig    `json:"database"`
+	Vpcs             []VpcDetail `json:"vpcs"`
+	SoftwareID       int         `json:"software_id"`
+	TemplateID       int         `json:"template_id"`
+	ParameterGroupId int         `json:"pg_id,omitempty"`
+	PublicIPRequired bool        `json:"public_ip_required"`
+	Group            string      `json:"group"`
 }
 
-type DatabaseDetail struct {
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
+type DBConfig struct {
+	User        string `json:"user"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	DBaaSNumber int    `json:"dbaas_number"`
 }
 
 type PGDetail struct {

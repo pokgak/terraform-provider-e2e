@@ -10,7 +10,7 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 )
 
-func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[string]interface{}, error) {
+func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string, location string) (map[string]interface{}, error) {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
@@ -24,7 +24,7 @@ func (c *Client) NewMySqlDb(item *models.MySqlCreate, project_id string) (map[st
 		return nil, fmt.Errorf(" client | error while creating http request: %v", err)
 	}
 
-	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, item.Location)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
 
