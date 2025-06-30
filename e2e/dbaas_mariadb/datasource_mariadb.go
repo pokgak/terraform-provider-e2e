@@ -1,4 +1,4 @@
-package mariadb
+package dbaas_mariadb
 
 import (
 	"context"
@@ -133,8 +133,8 @@ func dataSourceReadMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	_ = d.Set("software_version", software.Version)
 	_ = d.Set("power_status", master.Status)
 
-	if db.PGDetail != nil {
-		_ = d.Set("parameter_group_id", db.PGDetail.PGID)
+	if db.PGDetail.ID != 0 {
+		_ = d.Set("parameter_group_id", db.PGDetail.ID)
 	}
 
 	return diags

@@ -225,8 +225,6 @@ func addParamsAndHeaders[T StringConvertible](req *http.Request, apiKey string, 
 	// req.Header.Add("User-Agent", "terraform-e2e")
 	return req
 }
-
-
 func CheckResponseStatusForBlock(response *http.Response) error {
 	log.Printf("[INFO] CLIENT | CHECK RESPONSE STATUS FOR BLOCK response = %+v", response)
 	if response.StatusCode != http.StatusOK {

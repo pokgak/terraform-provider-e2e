@@ -602,7 +602,6 @@ func (c *Client) GetReservedIps(project_id string, location string) (*models.Res
 	params.Add("apikey", c.Api_key)
 	params.Add("project_id", project_id)
 	params.Add("location", location)
-	params.Add("project_id", project_id)
 	req.URL.RawQuery = params.Encode()
 	SetBasicHeaders(c.Auth_token, req)
 	response, err := c.HttpClient.Do(req)

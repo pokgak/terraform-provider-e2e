@@ -58,16 +58,10 @@ type DBNode struct {
 }
 
 type DBCreds struct {
-	ID       int       `json:"id"`
-	Username string    `json:"username"`
-	Database string    `json:"database"`
-	PGDetail *PGDetail `json:"pg_detail,omitempty"` 
-}
-
-type PGDetail struct {
-	Name   string `json:"name"`
-	Family string `json:"family"`
-	PGID   int    `json:"pg_id"`
+	ID       int      `json:"id"`
+	Username string   `json:"username"`
+	Database string   `json:"database"`
+	PGDetail PGDetail `json:"pg_detail"`
 }
 
 type AllowedIPs struct {
@@ -79,18 +73,29 @@ type AllowedIPs struct {
 }
 
 type Plan struct {
-	Name                     string         `json:"name"`
-	Price                    string         `json:"price"`
-	TemplateID               int            `json:"template_id"`
-	RAM                      string         `json:"ram"`
-	CPU                      string         `json:"cpu"`
-	Disk                     string         `json:"disk"`
-	Currency                 string         `json:"currency"`
-	Software                 Software       `json:"software"`
-	AvailableInventoryStatus bool           `json:"available_inventory_status"`
-	PricePerHour             float64        `json:"price_per_hour"`
-	PricePerMonth            float64        `json:"price_per_month"`
-	CommittedSKUs            []CommittedSKU `json:"committed_sku"`
+	Name                   string         `json:"name"`
+	Price                  string         `json:"price"`
+	TemplateID             int            `json:"template_id"`
+	RAM                    string         `json:"ram"`
+	CPU                    string         `json:"cpu"`
+	Disk                   string         `json:"disk"`
+	Currency               string         `json:"currency"`
+	Software               Software       `json:"software"`
+	AvailableInventoryStat bool           `json:"available_inventory_status"`
+	PricePerHour           float64        `json:"price_per_hour"`
+	PricePerMonth          float64        `json:"price_per_month"`
+	CommittedSKU           []CommittedSKU `json:"committed_sku"`
+}
+
+type MySqlCreate struct {
+	Name             string   `json:"name"`
+	Database         DBConfig `json:"database"`
+	Vpcs             []VPC    `json:"vpcs"`
+	SoftwareID       int      `json:"software_id"`
+	TemplateID       int      `json:"template_id"`
+	ParameterGroupId int      `json:"pg_id,omitempty"`
+	PublicIPRequired bool     `json:"public_ip_required"`
+	Group            string   `json:"group"`
 }
 
 type CommittedSKU struct {
@@ -113,6 +118,17 @@ type MariaDBCreateRequest struct {
 	PGID                 int           `json:"pg_id"`                   
 	IsEncryptionEnabled  bool          `json:"isEncryptionEnabled"`     
 	EncryptionPassphrase string        `json:"encryption_passphrase"`   
+}
+
+type DBCreateRequest struct {
+	Name             string   `json:"name"`
+	SoftwareID       int      `json:"software_id"`
+	TemplateID       int      `json:"template_id"`
+	PublicIPRequired bool     `json:"public_ip_required"`
+	Group            string   `json:"group"`
+	VPCs             []VPC    `json:"vpcs"`
+	Database         DBConfig `json:"database"`
+	PGID             *int     `json:"pg_id,omitempty"`
 }
 
 type DBConfig struct {
@@ -146,4 +162,26 @@ type UpgradePlanRequest struct {
 
 type DiskUpgradeRequest struct {
 	Size int `json:"size"`
+}
+type PGDetail struct {
+	ID int `json:"pg_id"`
+}
+
+type MySQlPlanUpgradeAction struct {
+	TemplateID int `json:"template_id"`
+}
+
+type MYSQLExpandDisk struct {
+	Size int `json:"size"`
+}
+
+type AttachVPCPayloadRequest struct {
+	Action string `json:"action"`
+	VPCs   []VPC  `json:"vpcs"`
+}
+
+type VPC struct {
+	VpcName    string  `json:"vpc_name,omitempty"`
+	Ipv4_cidr  string  `json:"ipv4_cidr,omitempty"`
+	Network_id float64 `json:"network_id,omitempty"`
 }

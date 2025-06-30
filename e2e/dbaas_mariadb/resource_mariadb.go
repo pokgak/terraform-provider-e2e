@@ -1,4 +1,4 @@
-package mariadb
+package  dbaas_mariadb
 
 import (
 	"context"

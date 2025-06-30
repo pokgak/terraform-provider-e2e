@@ -1,15 +1,22 @@
 package models
 
 type PlanResponse struct {
-	Code    int                    `json:"code"`
-	Data    PlanData               `json:"data"`
-	Errors  map[string]interface{} `json:"errors"`
-	Message string                 `json:"message"`
+	Code    int            `json:"code"`
+	Data    PlanData       `json:"data"`
+	Errors  map[string]any `json:"errors"`
+	Message string         `json:"message"`
 }
 
 type PlanData struct {
 	TemplatePlans   []PlanTemplate     `json:"template_plans"`
 	DatabaseEngines []EngineDefinition `json:"database_engines"`
+}
+
+type PostgressPlanUpgradeAction struct {
+	TemplateID int `json:"template_id"`
+}
+type PostgressDiskAction struct {
+	Size int `json:"size"`
 }
 
 type PlanTemplate struct {
