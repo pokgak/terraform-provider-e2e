@@ -3,6 +3,7 @@ package e2e
 import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/blockstorage"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/dbaas_mariadb"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/dbaas_mysql"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/dbaas_postgress"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/image"
@@ -55,6 +56,7 @@ func Provider() *schema.Provider {
 			"e2e_kubernetes":    kubernetes.ResourceKubernetesService(),
 			"e2e_postgresDBaaS": dbaas_postgress.ResourcePostgresDBaaS(),
 			"e2e_dbaas_mysql":   dbaas_mysql.ResourceMySql(),
+			"e2e_dbaas_mariadb": dbaas_mariadb.ResourceMariaDB(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"e2e_node":            node.DataSourceNode(),
@@ -71,6 +73,7 @@ func Provider() *schema.Provider {
 			"e2e_kubernetes":      kubernetes.DataSourceKubernetesService(),
 			"e2e_postgresDBaaS":   dbaas_postgress.DataSourcePostgresDBaaS(),
 			"e2e_dbaas_mysql":     dbaas_mysql.DataSourceMySQLDBaaS(),
+			"e2e_dbaas_mariadb":   dbaas_mariadb.DataSourceMariaDB(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

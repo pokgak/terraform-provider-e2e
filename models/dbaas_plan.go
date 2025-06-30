@@ -15,6 +15,7 @@ type PlanData struct {
 type PostgressPlanUpgradeAction struct {
 	TemplateID int `json:"template_id"`
 }
+
 type PostgressDiskAction struct {
 	Size int `json:"size"`
 }

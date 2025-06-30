@@ -107,6 +107,19 @@ type CommittedSKU struct {
 	Days     int     `json:"committed_days"`
 }
 
+type MariaDBCreateRequest struct {
+	Name                 string        `json:"name"`
+	SoftwareID           int           `json:"software_id"`
+	TemplateID           int           `json:"template_id"`
+	PublicIPRequired     bool          `json:"public_ip_required"`      
+	Group                string        `json:"group"`
+	VPCs                 []VPCMetadata `json:"vpcs,omitempty"`
+	Database             DBConfig      `json:"database"`
+	PGID                 int           `json:"pg_id"`                   
+	IsEncryptionEnabled  bool          `json:"isEncryptionEnabled"`     
+	EncryptionPassphrase string        `json:"encryption_passphrase"`   
+}
+
 type DBCreateRequest struct {
 	Name             string   `json:"name"`
 	SoftwareID       int      `json:"software_id"`
@@ -123,6 +136,29 @@ type DBConfig struct {
 	Password    string `json:"password"`
 	Name        string `json:"name"`
 	DBaaSNumber int    `json:"dbaas_number"`
+}
+
+type AttachDetachVPCRequest struct {
+	Action string        `json:"action"` 
+	VPCs   []VPCMetadata `json:"vpcs"`
+}
+
+type VPCMetadata struct {
+	NetworkID string `json:"network_id"`
+	VPCName   string `json:"vpc_name"`
+	IPv4CIDR  string `json:"ipv4_cidr"`
+}
+
+type ParameterGroupRequest struct {
+	Action string `json:"action"` 
+}
+
+type UpgradePlanRequest struct {
+	TemplateID int `json:"template_id"`
+}
+
+type DiskUpgradeRequest struct {
+	Size int `json:"size"`
 }
 
 type PGDetail struct {
