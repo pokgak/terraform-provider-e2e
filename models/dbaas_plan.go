@@ -18,7 +18,6 @@ type PostgressPlanUpgradeAction struct {
 type PostgressDiskAction struct {
 	Size int `json:"size"`
 }
-
 type PlanTemplate struct {
 	PlanName             string             `json:"name"`
 	PlanDisplayPrice     string             `json:"price"`
