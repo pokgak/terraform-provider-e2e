@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 )
@@ -211,18 +210,21 @@ func (c *Client) GetBlockStoragePlans(project_id int, location string) (map[stri
 	return jsonRes, nil
 }
 
-func addParamsAndHeaders(req *http.Request, Api_key string, Auth_token string, project_id int, location string) *http.Request {
+type StringConvertible interface {
+	~string | ~int
+}
+
+func addParamsAndHeaders[T StringConvertible](req *http.Request, apiKey string, authToken string, projectID T, location string) *http.Request {
 	params := req.URL.Query()
-	params.Add("apikey", Api_key)
-	params.Add("project_id", strconv.Itoa(project_id))
+	params.Add("apikey", apiKey)
+	params.Add("project_id", fmt.Sprint(projectID))
 	params.Add("location", location)
 	req.URL.RawQuery = params.Encode()
-	req.Header.Add("Authorization", "Bearer "+Auth_token)
+	req.Header.Add("Authorization", "Bearer "+authToken)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("User-Agent", "terraform-e2e")
 	return req
 }
-
 func CheckResponseStatusForBlock(response *http.Response) error {
 	log.Printf("[INFO] CLIENT | CHECK RESPONSE STATUS FOR BLOCK response = %+v", response)
 	if response.StatusCode != http.StatusOK {

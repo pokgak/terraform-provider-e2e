@@ -3,6 +3,7 @@ package e2e
 import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/blockstorage"
+	postgres "github.com/e2eterraformprovider/terraform-provider-e2e/e2e/dbaas_postgress"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/image"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/kubernetes"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/loadbalancer"
@@ -41,16 +42,17 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"e2e_node":         node.ResourceNode(),
-			"e2e_image":        image.ResourceImage(),
-			"e2e_loadbalancer": loadbalancer.ResourceLoadBalancer(),
-			"e2e_vpc":          vpc.ResouceVpc(),
-			"e2e_reserved_ip":  reserve_ip.ResourceReserveIP(),
-			"e2e_blockstorage": blockstorage.ResourceBlockStorage(),
-			"e2e_sfs":          sfs.ResourceSfs(),
-			"e2e_objectstore":  objectstore.ResourceObjectStore(),
-			"e2e_ssh_key":      ssh_key.ResourceSshKey(),
-			"e2e_kubernetes":   kubernetes.ResourceKubernetesService(),
+			"e2e_node":          node.ResourceNode(),
+			"e2e_image":         image.ResourceImage(),
+			"e2e_loadbalancer":  loadbalancer.ResourceLoadBalancer(),
+			"e2e_vpc":           vpc.ResouceVpc(),
+			"e2e_reserved_ip":   reserve_ip.ResourceReserveIP(),
+			"e2e_blockstorage":  blockstorage.ResourceBlockStorage(),
+			"e2e_sfs":           sfs.ResourceSfs(),
+			"e2e_objectstore":   objectstore.ResourceObjectStore(),
+			"e2e_ssh_key":       ssh_key.ResourceSshKey(),
+			"e2e_kubernetes":    kubernetes.ResourceKubernetesService(),
+			"e2e_postgresDBaaS": postgres.ResourcePostgresDBaaS(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"e2e_node":            node.DataSourceNode(),
@@ -65,6 +67,7 @@ func Provider() *schema.Provider {
 			"e2e_sfss":            sfs.DataSourceSfs(),
 			"e2e_objectstores":    objectstore.DataSourceObjectStores(),
 			"e2e_kubernetes":      kubernetes.DataSourceKubernetesService(),
+			"e2e_postgresDBaaS":   postgres.DataSourcePostgresDBaaS(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
