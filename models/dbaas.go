@@ -58,9 +58,10 @@ type DBNode struct {
 }
 
 type DBCreds struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Database string `json:"database"`
+	ID       int      `json:"id"`
+	Username string   `json:"username"`
+	Database string   `json:"database"`
+	PGDetail PGDetail `json:"pg_detail"`
 }
 
 type AllowedIPs struct {
@@ -72,18 +73,29 @@ type AllowedIPs struct {
 }
 
 type Plan struct {
-	Name                     string         `json:"name"`
-	Price                    string         `json:"price"`
-	TemplateID               int            `json:"template_id"`
-	RAM                      string         `json:"ram"`
-	CPU                      string         `json:"cpu"`
-	Disk                     string         `json:"disk"`
-	Currency                 string         `json:"currency"`
-	Software                 Software       `json:"software"`
-	AvailableInventoryStatus bool           `json:"available_inventory_status"`
-	PricePerHour             float64        `json:"price_per_hour"`
-	PricePerMonth            float64        `json:"price_per_month"`
-	CommittedSKUs            []CommittedSKU `json:"committed_sku"`
+	Name                   string         `json:"name"`
+	Price                  string         `json:"price"`
+	TemplateID             int            `json:"template_id"`
+	RAM                    string         `json:"ram"`
+	CPU                    string         `json:"cpu"`
+	Disk                   string         `json:"disk"`
+	Currency               string         `json:"currency"`
+	Software               Software       `json:"software"`
+	AvailableInventoryStat bool           `json:"available_inventory_status"`
+	PricePerHour           float64        `json:"price_per_hour"`
+	PricePerMonth          float64        `json:"price_per_month"`
+	CommittedSKU           []CommittedSKU `json:"committed_sku"`
+}
+
+type MySqlCreate struct {
+	Name             string   `json:"name"`
+	Database         DBConfig `json:"database"`
+	Vpcs             []VPC    `json:"vpcs"`
+	SoftwareID       int      `json:"software_id"`
+	TemplateID       int      `json:"template_id"`
+	ParameterGroupId int      `json:"pg_id,omitempty"`
+	PublicIPRequired bool     `json:"public_ip_required"`
+	Group            string   `json:"group"`
 }
 
 type CommittedSKU struct {
@@ -111,6 +123,18 @@ type DBConfig struct {
 	Password    string `json:"password"`
 	Name        string `json:"name"`
 	DBaaSNumber int    `json:"dbaas_number"`
+}
+
+type PGDetail struct {
+	ID int `json:"pg_id"`
+}
+
+type MySQlPlanUpgradeAction struct {
+	TemplateID int `json:"template_id"`
+}
+
+type MYSQLExpandDisk struct {
+	Size int `json:"size"`
 }
 
 type AttachVPCPayloadRequest struct {

@@ -1,4 +1,4 @@
-package postgres
+package dbaas_postgress
 
 import (
 	"context"
