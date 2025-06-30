@@ -222,7 +222,7 @@ func addParamsAndHeaders[T StringConvertible](req *http.Request, apiKey string, 
 	req.URL.RawQuery = params.Encode()
 	req.Header.Add("Authorization", "Bearer "+authToken)
 	req.Header.Add("Content-Type", "application/json")
-	// req.Header.Add("User-Agent", "terraform-e2e")
+	req.Header.Add("User-Agent", "terraform-e2e")
 	return req
 }
 func CheckResponseStatusForBlock(response *http.Response) error {
