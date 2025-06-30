@@ -3,7 +3,7 @@ package models
 type DBResponse struct {
 	Code    int    `json:"code"`
 	Data    DB     `json:"data"`
-	Error   string `json:"error"`
+	Errors  any    `json:"errors"`
 	Message string `json:"message"`
 }
 
@@ -87,24 +87,35 @@ type Plan struct {
 	CommittedSKU           []CommittedSKU `json:"committed_sku"`
 }
 
-type CommittedSKU struct {
-	CommittedSKUID       int     `json:"committed_sku_id"`
-	CommittedSKUName     string  `json:"committed_sku_name"`
-	CommittedNodeMessage string  `json:"committed_node_message"`
-	CommittedSKUPrice    float64 `json:"committed_sku_price"`
-	CommittedUptoDate    string  `json:"committed_upto_date"`
-	CommittedDays        int     `json:"committed_days"`
+type MySqlCreate struct {
+	Name             string   `json:"name"`
+	Database         DBConfig `json:"database"`
+	Vpcs             []VPC    `json:"vpcs"`
+	SoftwareID       int      `json:"software_id"`
+	TemplateID       int      `json:"template_id"`
+	ParameterGroupId int      `json:"pg_id,omitempty"`
+	PublicIPRequired bool     `json:"public_ip_required"`
+	Group            string   `json:"group"`
 }
 
-type MySqlCreate struct {
-	Name             string      `json:"name"`
-	Database         DBConfig    `json:"database"`
-	Vpcs             []VpcDetail `json:"vpcs"`
-	SoftwareID       int         `json:"software_id"`
-	TemplateID       int         `json:"template_id"`
-	ParameterGroupId int         `json:"pg_id,omitempty"`
-	PublicIPRequired bool        `json:"public_ip_required"`
-	Group            string      `json:"group"`
+type CommittedSKU struct {
+	ID       int     `json:"committed_sku_id"`
+	Name     string  `json:"committed_sku_name"`
+	Message  string  `json:"committed_node_message"`
+	Price    float64 `json:"committed_sku_price"`
+	UptoDate string  `json:"committed_upto_date"`
+	Days     int     `json:"committed_days"`
+}
+
+type DBCreateRequest struct {
+	Name             string   `json:"name"`
+	SoftwareID       int      `json:"software_id"`
+	TemplateID       int      `json:"template_id"`
+	PublicIPRequired bool     `json:"public_ip_required"`
+	Group            string   `json:"group"`
+	VPCs             []VPC    `json:"vpcs"`
+	Database         DBConfig `json:"database"`
+	PGID             *int     `json:"pg_id,omitempty"`
 }
 
 type DBConfig struct {
@@ -118,17 +129,17 @@ type PGDetail struct {
 	ID int `json:"pg_id"`
 }
 
-type AttachVPCPayloadRequest struct {
-	Action string      `json:"action"`
-	Vpcs   []VpcDetail `json:"vpcs"`
-}
-
 type MySQlPlanUpgradeAction struct {
 	TemplateID int `json:"template_id"`
 }
 
 type MYSQLExpandDisk struct {
 	Size int `json:"size"`
+}
+
+type AttachVPCPayloadRequest struct {
+	Action string `json:"action"`
+	VPCs   []VPC  `json:"vpcs"`
 }
 
 type VPC struct {

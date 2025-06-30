@@ -191,7 +191,7 @@ func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*model
 		}
 		mySqlobject.Vpcs = vpcListDetail
 	} else {
-		mySqlobject.Vpcs = make([]models.VpcDetail, 0)
+		mySqlobject.Vpcs = make([]models.VPC, 0)
 	}
 
 	return &mySqlobject, nil
@@ -334,7 +334,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			attachObj := models.AttachVPCPayloadRequest{
 				Action: "attach",
-				Vpcs:   vpcDetails,
+				VPCs:   vpcDetails,
 			}
 			_, err = apiClient.AttachVpcToMySql(&attachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {
@@ -350,7 +350,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			detachObj := models.AttachVPCPayloadRequest{
 				Action: "detach",
-				Vpcs:   vpcDetails,
+				VPCs:   vpcDetails,
 			}
 			_, err = apiClient.DetachVpcFromMySql(&detachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {

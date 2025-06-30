@@ -35,6 +35,7 @@ func DataSourceSshKey() *schema.Resource {
 				Computed:    true,
 				Description: "The name of the project associated with the ssh key",
 			},
+
 			"timestamp": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -52,7 +53,7 @@ func dataSourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 	log.Printf("[INFO] INSIDE SSH KEY DATA SOURCE | read")
 	label := d.Get("label").(string)
 	project_id := d.Get("project_id").(string)
-	res, err := apiClient.GetSshKey(label, project_id)
+	res, err := apiClient.GetSshKey(label, project_id, d.Get("location").(string))
 	if err != nil {
 		return diag.Errorf("error finding ssh key with label %s", label)
 	}
@@ -68,7 +69,7 @@ func dataSourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("ssh_key", data["ssh_key"].(string))
 	d.Set("project_name", data["project_name"].(string))
 	d.Set("timestamp", data["timestamp"].(string))
-	log.Printf("[INFO] NODE DATA SOURCE | d : %+v", *d)
+	log.Printf("[INFO] NODE DATA SOURCE | d : %+v", d)
 
 	return diags
 

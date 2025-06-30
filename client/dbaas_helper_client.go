@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -14,49 +15,50 @@ import (
 
 func (c *Client) GetSoftwareId(project_id string, location string, name string, version string) (int, error) {
 
-	url := c.Api_endpoint + "rds/plans/"
-
-	req, err := http.NewRequest("GET", url, nil)
+	urlGetReserveIps := c.Api_endpoint + "rds/plans/"
+	req, err := http.NewRequest("GET", urlGetReserveIps, nil)
 	if err != nil {
 		return -1, err
 	}
 
-	req, err = c.AddParamsAndHeader(req, location, project_id)
-	if err != nil {
-		return -1, fmt.Errorf(" error while setting parameters and headers =: %s ", err)
-	}
-
+	params := req.URL.Query()
+	params.Add("apikey", c.Api_key)
+	params.Add("project_id", project_id)
+	params.Add("location", location)
+	req.URL.RawQuery = params.Encode()
+	SetBasicHeaders(c.Auth_token, req)
 	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		return -1, fmt.Errorf(" error inside GetSoftwareId =: %s ", err)
-	}
-	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
 	if err != nil {
+		log.Printf("[ERROR] error inside GetSoftwareId")
 		return -1, err
 	}
 
-	var res models.PlanResponse
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	log.Println("[DEBUG] Raw body:", string(body))
+
+	res := models.PlanResponse{}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return -1, fmt.Errorf(" inside GetSoftwareId | error while unmarshalling =: %s ", err)
+		log.Printf("[ERROR] inside GetSoftwareId | error while unmarshlling")
+		return -1, err
 	}
-
-	for _, item := range res.Data.DatabaseEngines {
+	data := res.Data.DatabaseEngines
+	for _, item := range data {
 		if item.EngineName == name && item.EngineVersion == version {
 			return item.EngineID, nil
 		}
 	}
 
-	return -1, errors.New(" matching engine not found ")
+	log.Printf("[INFO] ---- SOFTWARE ID ---- inside GetSoftwareId | error NOT FOUND")
+	return -1, errors.New("matching engine not found")
 
 }
 
 func (c *Client) GetTemplateId(project_id string, location string, plan string, software_id string) (int, error) {
 
 	url := c.Api_endpoint + "rds/plans/"
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return -1, err
@@ -68,33 +70,31 @@ func (c *Client) GetTemplateId(project_id string, location string, plan string, 
 	params.Add("location", location)
 	params.Add("software_id", software_id)
 	req.URL.RawQuery = params.Encode()
-
 	SetBasicHeaders(c.Auth_token, req)
-
 	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		return -1, fmt.Errorf(" error inside GetTemplateId =: %s ", err)
-	}
-	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
 	if err != nil {
+		log.Printf("[ERROR] error inside GetTemplateId")
 		return -1, err
 	}
 
-	var res models.PlanResponse
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	res := models.PlanResponse{}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return -1, fmt.Errorf(" inside GetTemplateId | error while unmarshalling =: %s ", err)
+		log.Printf("[ERROR] inside GetTemplateId | error while unmarshlling")
+		return -1, err
 	}
-
-	for _, item := range res.Data.TemplatePlans {
+	data := res.Data.TemplatePlans
+	for _, item := range data {
 		if item.PlanName == plan {
 			return item.PlanTemplateID, nil
 		}
 	}
 
-	return -1, errors.New(" matching plan not found ")
+	log.Printf("[INFO] ---- Template ID ---- inside GetTemplateId | error NOT FOUND")
+	return -1, errors.New("matching plan not found")
 
 }
 

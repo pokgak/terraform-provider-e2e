@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *client.Client) ([]models.VpcDetail, error) {
-	var vpc_details []models.VpcDetail
+func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *client.Client) ([]models.VPC, error) {
+	var vpc_details []models.VPC
 
 	for _, id := range vpc_list {
 		vpc_detail, err := apiClient.GetVpc(strconv.Itoa(id.(int)), d.Get("project_id").(string), d.Get("location").(string))
@@ -23,7 +23,7 @@ func ExpandVpcList(d *schema.ResourceData, vpc_list []interface{}, apiClient *cl
 		if data.State != "Active" {
 			return nil, fmt.Errorf("Can not attach vpc currently, vpc is in %s state", data.State)
 		}
-		r := models.VpcDetail{
+		r := models.VPC{
 			Network_id: data.Network_id,
 			VpcName:    data.Name,
 			Ipv4_cidr:  data.Ipv4_cidr,

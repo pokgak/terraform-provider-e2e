@@ -4,12 +4,10 @@ import (
 	"context"
 	"log"
 	"strconv"
-	
-	
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
-	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -102,25 +100,23 @@ func resourceReadSshKey(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 	if sshKey == nil {
-	log.Printf("[WARN] SSH key with ID %s not found", pk)
-	d.SetId("")
+		log.Printf("[WARN] SSH key with ID %s not found", pk)
+		d.SetId("")
 
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "SSH key not found",
-		Detail:   "The SSH key may have been deleted manually.",
-	})
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "SSH key not found",
+			Detail:   "The SSH key may have been deleted manually.",
+		})
 
-	return diags
-}
-
+		return diags
+	}
 
 	d.Set("label", sshKey.Label)
 	d.Set("ssh_key", sshKey.Ssh_key)
 	d.Set("timestamp", sshKey.Timestamp)
 	return diags
 }
-
 
 func resourceDeleteSshKey(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)

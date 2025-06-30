@@ -12,6 +12,13 @@ type PlanData struct {
 	DatabaseEngines []EngineDefinition `json:"database_engines"`
 }
 
+type PostgressPlanUpgradeAction struct {
+	TemplateID int `json:"template_id"`
+}
+type PostgressDiskAction struct {
+	Size int `json:"size"`
+}
+
 type PlanTemplate struct {
 	PlanName             string             `json:"name"`
 	PlanDisplayPrice     string             `json:"price"`
@@ -43,9 +50,9 @@ type PlanCommittedSKU struct {
 }
 
 type EngineDefinition struct {
-	EngineID          int       `json:"id"`
-	EngineName        string    `json:"name"`
-	EngineVersion     string    `json:"version"`
-	EngineType        string    `json:"engine"`
-	EngineDescription ***string `json:"description"`
+	EngineID          int     `json:"id"`
+	EngineName        string  `json:"name"`
+	EngineVersion     string  `json:"version"`
+	EngineType        string  `json:"engine"`
+	EngineDescription *string `json:"description"`
 }
