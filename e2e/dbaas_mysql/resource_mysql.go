@@ -1,4 +1,4 @@
-package dbaasmysql
+package dbaas_mysql
 
 import (
 	"context"
