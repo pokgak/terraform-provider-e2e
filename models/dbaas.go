@@ -138,9 +138,6 @@ type DBConfig struct {
 	DBaaSNumber int    `json:"dbaas_number"`
 }
 
-
-
-
 type AttachDetachVPCRequest struct {
 	Action string        `json:"action"` 
 	VPCs   []VPCMetadata `json:"vpcs"`
@@ -163,6 +160,7 @@ type UpgradePlanRequest struct {
 type DiskUpgradeRequest struct {
 	Size int `json:"size"`
 }
+
 type PGDetail struct {
 	ID int `json:"pg_id"`
 }
