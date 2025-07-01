@@ -436,6 +436,7 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 
 	status := d.Get("status").(string)
 	if strings.ToUpper(status) != "STOPPED" {
+		_ = d.Set("plan_name", oldPlan.(string))
 		return diag.FromErr(fmt.Errorf("cannot upgrade plan: MariaDB must be STOPPED, current status is '%s'", status))
 	}
 
@@ -452,6 +453,7 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	}
 
 	if err := apiClient.UpgradeMariaDBPlan(id, projectID, location, templateID); err != nil {
+		_ = d.Set("plan_name", oldPlan.(string))
 		return diag.FromErr(fmt.Errorf("failed to upgrade MariaDB plan: %v", err))
 	}
 
@@ -466,11 +468,13 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 	if additionalSize > 0 {
 		status := d.Get("status").(string)
 		if strings.ToUpper(status) != "STOPPED" {
+			_ = d.Set("disk_size", 0)
 			return diag.FromErr(fmt.Errorf("cannot expand disk: MariaDB must be STOPPED, current status is '%s'", status))
 		}
 
 		err := apiClient.ExpandMariaDBDisk(id, projectID, location, additionalSize)
 		if err != nil {
+			_ = d.Set("disk_size", 0)
 			return diag.FromErr(fmt.Errorf("failed to expand MariaDB disk: %v", err))
 		}
 
