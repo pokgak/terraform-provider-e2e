@@ -285,7 +285,7 @@ func resourceReadPostgress(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] DBAAS POSTGRESS CREATE | RESPONSE BODY | ------ > %+v", res)
+	log.Printf("[INFO] DBAAS POSTGRESS READ | RESPONSE BODY | ------ > %+v", res)
 
 	if _, ok := res["code"]; !ok || res["is_limit_available"] == false {
 		msg, _ := res["message"].(string)
