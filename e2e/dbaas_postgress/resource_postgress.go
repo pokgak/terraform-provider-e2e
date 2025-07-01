@@ -353,19 +353,24 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 	if d.HasChange("detach_public_ip") {
 		status := d.Get("status").(string)
 		dbaas_id := d.Get("id").(string)
+		prev, _ := d.GetChange("detach_public_ip")
 
 		// Block operation if DBaaS is still in "Creating" state
 		if status == "CREATING" {
+			d.Set("detach_public_ip", prev)
 			return diag.Errorf("Cannot perform attach public ip while DBaaS is in CREATING state")
+
 		}
 		if !d.Get("detach_public_ip").(bool) {
 			err := apiClient.AttachPublicIpPostgressDB(dbaas_id, d.Get("project_id").(string), d.Get("location").(string))
 			if err != nil {
+				d.Set("detach_public_ip", prev)
 				return diag.FromErr(err)
 			}
 		} else {
 			err := apiClient.DetachPublicIpPostgressDB(dbaas_id, d.Get("project_id").(string), d.Get("location").(string))
 			if err != nil {
+				d.Set("detach_public_ip", prev)
 				return diag.FromErr(err)
 			}
 		}
@@ -463,9 +468,11 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 
 		status := d.Get("status").(string)
 		dbaas_id := d.Get("id")
+		prev, _ := d.GetChange("parameter_group_id")
 
 		// Block operation if DBaaS is still in "Creating" state
 		if status == "CREATING" {
+			d.Set("parameter_group_id", prev)
 			return diag.Errorf("Cannot perform parameter group changes while DBaaS is in CREATING state")
 		}
 
@@ -473,6 +480,7 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 			pgID := strconv.Itoa(v.(int))
 			err := apiClient.UpdateParameterGroup(dbaas_id.(string), pgID, d.Get("project_id").(string), d.Get("location").(string))
 			if err != nil {
+				d.Set("parameter_group_id", prev)
 				return diag.FromErr(err)
 			}
 		}
@@ -523,7 +531,8 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 		prevSize, currSize := d.GetChange("size")
 
 		if d.Get("status").(string) != "SUSPENDED" {
-			return diag.Errorf("Cannot perform power operations while DBaaS is in CREATING state")
+			d.Set("size", prevSize)
+			return diag.Errorf("Cannot perform power operations while DBaaS is in %s state", d.Get("status").(string))
 		}
 
 		project_id := d.Get("project_id").(string)
@@ -538,11 +547,9 @@ func resourceUpdatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 
 		err := apiClient.UpgradeDiskStorage(dbaas_id.(string), sizeInt, project_id, location)
 		if err != nil {
-			d.Set("plan", prevSize)
+			d.Set("size", prevSize)
 			return diag.FromErr(err)
 		}
-	} else {
-		return diag.Errorf("\n\nError while updating the size to upgrade the disk storage !!\n\n")
 	}
 
 	return resourceReadPostgress(ctx, d, m)
