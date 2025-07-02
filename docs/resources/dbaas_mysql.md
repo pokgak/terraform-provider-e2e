@@ -20,23 +20,22 @@ resource "e2e_dbaas_mysql" "db1" {
   plan                = "DBS.16GB"
   version             = "8.0"
   dbaas_name          = "mydbname"
-  parameter_group_id  = 123     # Optional, for parameter group attachment.
-  size                = 250     # Optional, disk size in GB 
-  attach_public_ip    = true
+  parameter_group_id  = 123     # Optional, Replace with your parameter group id.
+  size                = 250     # Optional, additional disk size (in GB) which you want to attach after node is created. 
 
   database {
-    user     = "admin"      # Replace this with the username you want to have for your DB
-    password = "Password"   # Replace this with the password you want to have for your DB
+    user     = "admin"                     # Replace this with the username you want to have for your DB
+    password = "SecurePassword@12345678"   # Replace this with the password you want to have for your DB
     name     = "mydb"
   }
 
-  vpcs = [e2e_vpc.VPC-TS-01.id]
+  vpcs = [e2e_vpc.VPC-TS-01.id]  # Optional, add VPC ID(s) only if you want to attach vpc
 }
 
 resource "e2e_vpc" "VPC-TS-01" {
   location    = "Delhi"
   vpc_name    = "VPC-TS-01"
-  project_id  = "your_project_id"
+  project_id  = 12345   # Replace with your actual project ID
 }
 ```
 
@@ -55,14 +54,14 @@ resource "e2e_vpc" "VPC-TS-01" {
 ### Optional
 
 - `parameter_group_id` (Number) Parameter Group ID (optional). To find available PG IDs, refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/rds-parameter-group-templates/get)
-- `size` (Number) Size of the additionally attached disk in GB, this field will be used when you want to use expand_disk option.
-- `attach_public_ip` (Boolean) Whether to attach a public IP to the DBaaS instance.
+- `size` (Number) Size of the additionally attached disk in GB, this field will be used when you want to use expand_disk option. (Please ensure that your dbaas instance is in `STOPPED` state before expanding disk).
+- `public_ip_required` (Boolean) Whether to attach a public IP to the DBaaS instance. (By default it is passed as TRUE, further if you want to remove it please make this option as FALSE and make sure that you have a vpc attached with your dbaas instance before detaching public ip)
 - `is_encryption_enabled` (Boolean) Whether encryption is enabled for the DBaaS.
+- `status` (String) Set `start` (to resume your instance), `stop` (to stop your instance), or `restart` (to restart your instance) to control DBaaS state.
 
 ### Read-Only
 
 - `id` (String) The ID of the DBaaS instance.
-- `status` (String) Current status of the DBaaS instance.
 - `public_ip` (String) Public IP address of the DBaaS.
 - `private_ip` (String) Private IP address of the DBaaS.
 - `disk` (String) Allocated disk size.
