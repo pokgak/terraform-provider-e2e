@@ -181,7 +181,12 @@ func ResourceMariaDB() *schema.Resource {
 				Optional:    true,
 				Description: "Additional disk size (in GB) to expand during update.",
 			},
-			
+			"total_disk_size": {
+			Type:     schema.TypeInt,
+			Computed: true,
+			Description: "Total disk size in GB after expansion.",
+		},
+
 			"port": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -321,6 +326,8 @@ func resourceReadMariaDB(ctx context.Context, d *schema.ResourceData, m interfac
 	_ = d.Set("port", mariaDB.MasterNode.Port)
 
 	_ = d.Set("public_ip_attached", mariaDB.MasterNode.PublicIPAddress != "")
+	_ = d.Set("total_disk_size", mariaDB.MasterNode.Disk)
+
 
 	_ = d.Set("is_encryption_enabled", mariaDB.IsEncryptionEnabled)
 
@@ -355,6 +362,13 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		switch strings.ToUpper(newStatus) {
 		case "STOPPED":
 			if err := apiClient.ShutdownMariaDB(id, projectID, location); err != nil {
+				if d.HasChange("disk_size") {
+			_ = d.Set("disk_size", 0)
+		}
+		if d.HasChange("plan_name") {
+		oldPlan, _ := d.GetChange("plan_name")
+		_ = d.Set("plan_name", oldPlan.(string))
+		}
 				return diag.FromErr(fmt.Errorf("failed to shutdown MariaDB instance: %v", err))
 			}
 		case "RUNNING":

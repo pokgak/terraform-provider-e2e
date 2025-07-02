@@ -67,7 +67,7 @@ resource "e2e_vpc" "vpc1" {
 - `parameter_group_id` (Number) Parameter group ID to attach. Default is `0` (none).
 - `is_encryption_enabled` (Boolean) Whether to enable encryption at rest (default: false).
 - `encryption_passphrase` (String, Sensitive) Optional encryption passphrase.
-- `disk_size` (Number) Additional disk size to add (for expand disk use case).
+- `disk_size` (Number) Additional disk size to expand during update (in GB).
 - `status` (String) Set `RUNNING`, `STOPPED`, or `RESTARTING` to control DBaaS state.
 
 ### Read-Only
@@ -79,6 +79,9 @@ resource "e2e_vpc" "vpc1" {
 - `public_ip_address` (String) Assigned public IP.
 - `private_ip_address` (String) Assigned private IP.
 - `port` (String) Service port exposed (typically 3306).
+- `total_disk_size` (Number) Total disk size of the MariaDB instance in GB. Computed after creation and updated after disk expansion.
+
+
 
 ### Nested Schema for `database`
 
