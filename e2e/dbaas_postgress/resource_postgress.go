@@ -221,7 +221,8 @@ func resourceCreatePostgress(ctx context.Context, d *schema.ResourceData, m inte
 			DBaaSNumber: dbConfigMap["dbaas_number"].(int),
 			Name:        dbConfigMap["name"].(string),
 		},
-		PGID: pgID, // Only set if parameter_group_id was provided
+		PGID:                pgID, // Only set if parameter_group_id was provided
+		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
 	}
 	//vpc list config
 	vpcList, ok := d.GetOk("vpc_list")
