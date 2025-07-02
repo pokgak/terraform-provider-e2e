@@ -412,18 +412,6 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 	if d.HasChange("plan") {
 		prevPlan, currPlan := d.GetChange("plan")
 
-		// _, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
-		// if err != nil {
-		// 	d.Set("plan", prevPlan)
-		// 	return diag.FromErr(fmt.Errorf(" failed to change status of MySQL DBaaS instance to stop: %s", err))
-		// }
-
-		// err = WaitForPoweringOffOnDBaaS(apiClient, mySqlDBaaSId, projectID, location)
-		// if err != nil {
-		// 	d.Set("plan", prevPlan)
-		// 	return diag.FromErr(fmt.Errorf(" DBaaS instance did not reach SUSPENDED state: %s", err))
-		// }
-
 		projectIDRaw, ok := d.GetOk("project_id")
 		if !ok || projectIDRaw == nil {
 			d.Set("plan", prevPlan)
