@@ -65,6 +65,7 @@ func Provider() *schema.Provider {
 			"e2e_ssh_keys":         ssh_key.DataSourceSshKeys(),
 			"e2e_ssh_key":          ssh_key.DataSourceSshKey(),
 			"e2e_vpcs":             vpc.DataSourceVpcs(),
+			"e2e_security_groups":  security_group.DataSourceSecurityGroup(),
 			"e2e_blockstorage":     blockstorage.DataSourceBlockStorage(),
 			"e2e_nodes":            node.DataSourceNodes(),
 			"e2e_reserve_ips":      reserve_ip.DataSourceReserveIps(),
