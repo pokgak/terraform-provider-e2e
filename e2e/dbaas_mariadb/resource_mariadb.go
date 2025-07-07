@@ -363,12 +363,12 @@ func resourceUpdateMariaDB(ctx context.Context, d *schema.ResourceData, m interf
 		case "STOPPED":
 			if err := apiClient.ShutdownMariaDB(id, projectID, location); err != nil {
 				if d.HasChange("disk_size") {
-			_ = d.Set("disk_size", 0)
-		}
-		if d.HasChange("plan_name") {
-		oldPlan, _ := d.GetChange("plan_name")
-		_ = d.Set("plan_name", oldPlan.(string))
-		}
+					_ = d.Set("disk_size", 0)
+				}
+				if d.HasChange("plan_name") {
+					oldPlan, _ := d.GetChange("plan_name")
+					_ = d.Set("plan_name", oldPlan.(string))
+				}
 				return diag.FromErr(fmt.Errorf("failed to shutdown MariaDB instance: %v", err))
 			}
 		case "RUNNING":
