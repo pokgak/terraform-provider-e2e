@@ -34,6 +34,5 @@ type Rule struct {
 	Network       string `json:"network"`
 	Network_cidr  string `json:"network_cidr,omitempty"`
 	Network_size  *int   `json:"network_size,omitempty"`
-	// VPC_ID        *int   `json:"vpc_id,omitempty"`
-	Description string `json:"description"`
+	Description   string `json:"description"`
 }
