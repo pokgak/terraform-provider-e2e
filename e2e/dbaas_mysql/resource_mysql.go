@@ -330,6 +330,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			vpcIDs := added.List()
 			vpcDetails, err := ExpandVpcList(d, vpcIDs, apiClient)
 			if err != nil {
+				d.Set("vpcs", prevSet)
 				return diag.FromErr(err)
 			}
 			attachObj := models.AttachVPCPayloadRequest{
@@ -338,6 +339,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			_, err = apiClient.AttachVpcToMySql(&attachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {
+				d.Set("vpcs", prevSet)
 				return diag.FromErr(fmt.Errorf(" failed to attach VPC(s) to MySQL DBaaS instance"))
 			}
 		}
@@ -346,6 +348,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			vpcIDs := removed.List()
 			vpcDetails, err := ExpandVpcList(d, vpcIDs, apiClient)
 			if err != nil {
+				d.Set("vpcs", prevSet)
 				return diag.FromErr(err)
 			}
 			detachObj := models.AttachVPCPayloadRequest{
@@ -354,6 +357,7 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 			}
 			_, err = apiClient.DetachVpcFromMySql(&detachObj, mySqlDBaaSId, projectID, location)
 			if err != nil {
+				d.Set("vpcs", prevSet)
 				return diag.FromErr(fmt.Errorf(" failed to detach VPC(s) from MySQL DBaaS instance"))
 			}
 		}
@@ -407,18 +411,6 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 
 	if d.HasChange("plan") {
 		prevPlan, currPlan := d.GetChange("plan")
-
-		_, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
-		if err != nil {
-			d.Set("plan", prevPlan)
-			return diag.FromErr(fmt.Errorf(" failed to change status of MySQL DBaaS instance to stop: %s", err))
-		}
-
-		err = WaitForPoweringOffOnDBaaS(apiClient, mySqlDBaaSId, projectID, location)
-		if err != nil {
-			d.Set("plan", prevPlan)
-			return diag.FromErr(fmt.Errorf(" DBaaS instance did not reach SUSPENDED state: %s", err))
-		}
 
 		projectIDRaw, ok := d.GetOk("project_id")
 		if !ok || projectIDRaw == nil {
@@ -481,18 +473,6 @@ func ResourceUpdateMySqlDB(ctx context.Context, d *schema.ResourceData, m interf
 		oldSizeRaw, newSizeRaw := d.GetChange("size")
 		oldSize := oldSizeRaw.(int)
 		newSize := newSizeRaw.(int)
-
-		_, err := apiClient.StopMySqlDBaaS(mySqlDBaaSId, projectID, location)
-		if err != nil {
-			d.Set("size", oldSize)
-			return diag.FromErr(fmt.Errorf("failed to change status of MySQL DBaaS instance to stop: %s", err))
-		}
-
-		err = WaitForPoweringOffOnDBaaS(apiClient, mySqlDBaaSId, projectID, location)
-		if err != nil {
-			d.Set("size", oldSize)
-			return diag.FromErr(fmt.Errorf("DBaaS instance did not reach SUSPENDED state: %s", err))
-		}
 
 		_, err = apiClient.ExpandMySQLDBaaSDisk(mySqlDBaaSId, newSize, projectID, location)
 		if err != nil {
