@@ -32,6 +32,22 @@ func NewClient(api_key string, auth_token string, api_endpoint string) *Client {
 	}
 }
 
+type StringConvertible interface {
+	~string | ~int
+}
+
+func addParamsAndHeaders[T StringConvertible](req *http.Request, apiKey string, authToken string, projectID T, location string) *http.Request {
+	params := req.URL.Query()
+	params.Add("apikey", apiKey)
+	params.Add("project_id", fmt.Sprint(projectID))
+	params.Add("location", location)
+	req.URL.RawQuery = params.Encode()
+	req.Header.Add("Authorization", "Bearer "+authToken)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", "terraform-e2e")
+	return req
+}
+
 func (c *Client) NewNode(item *models.NodeCreate, project_id string, location string) (map[string]interface{}, error) {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(item)
