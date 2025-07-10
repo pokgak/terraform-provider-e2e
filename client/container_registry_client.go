@@ -120,3 +120,39 @@ func (c *Client) DeleteContainerRegistry(crProjectID, projectName, userID, proje
 
 	return nil
 }
+
+func (c *Client) UpdateContainerRegistry(projectName, preventVul, severity, projectID, location string) error {
+	url := c.Api_endpoint + "/container_registry/setup-container-registry/"
+
+	payload := map[string]string{
+		"project_name": projectName,
+		"prevent_vul":  preventVul,
+		"severity":     severity,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal update payload: %v", err)
+	}
+
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to create PUT request: %v", err)
+	}
+
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to perform update request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("update failed: status %d, body: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[DEBUG] Successfully updated Container Registry for project_name=%s", projectName)
+	return nil
+}

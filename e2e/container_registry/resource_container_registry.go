@@ -36,14 +36,12 @@ func ResourceContainerRegistry() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				ForceNew:    true,
 				Description: "Whether to prevent vulnerable images.",
 			},
 			"severity": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "low",
-				ForceNew:    true,
 				Description: "The severity level for vulnerabilities (low, medium, high, critical).",
 			},
 			"setup_status": {
@@ -55,6 +53,7 @@ func ResourceContainerRegistry() *schema.Resource {
 		CreateContext: resourceCreateContainerRegistry,
 		ReadContext:   resourceReadContainerRegistry,
 		DeleteContext: resourceDeleteContainerRegistry,
+		UpdateContext: resourceUpdateContainerRegistry,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -137,4 +136,24 @@ func resourceDeleteContainerRegistry(ctx context.Context, d *schema.ResourceData
 
 	d.SetId("")
 	return nil
+}
+
+func resourceUpdateContainerRegistry(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	apiClient := m.(*client.Client)
+
+	if d.HasChange("prevent_vul") || d.HasChange("severity") {
+		projectID := d.Get("project_id").(string)
+		location := d.Get("location").(string)
+		projectName := d.Get("project_name").(string)
+
+		preventVul := fmt.Sprintf("%t", d.Get("prevent_vul").(bool))
+		severity := d.Get("severity").(string)
+
+		err := apiClient.UpdateContainerRegistry(projectName, preventVul, severity, projectID, location)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to update container registry: %v", err))
+		}
+	}
+
+	return resourceReadContainerRegistry(ctx, d, m)
 }
