@@ -12,7 +12,7 @@ Creating this resource provisions a new security group with specified firewall r
 resource "e2e_security_groups" "web_sg" {
   name        = "web-sg"
   location    = "Delhi"
-  project_id  = "42914"
+  project_id  = "42914" 
   description = "Web Tier Security Group"
   default     = false
 
@@ -21,7 +21,7 @@ resource "e2e_security_groups" "web_sg" {
       protocol_name = "Custom_TCP"
       port_range    = "80"
       network       = "myNetwork"
-      network_cidr  = "vpc_4012"
+      network_cidr  = "vpc_4012" #provide your network_cidr. Find the format below in optional feilds.
       size          = 24
       description   = "Allow HTTP traffic"
     }
@@ -82,6 +82,6 @@ Each element in the `rules` list supports the following attributes:
 
 ## Notes
 
-* Rules with `network = "myNetwork"`, `size` is automatically set to `512` if not specified. `network_cidr` must be sxpllicitly provided.
+* Rules with `network = "myNetwork"`, `size` is automatically set to `512` if not specified. `network_cidr` must be explicitly provided.
 * Rules with `network = "myNetwork"`  must provide `network_cidr` explicitly.
 * Rules with `network = "manual"` must provide `size` and `network_cidr` explicitly.
