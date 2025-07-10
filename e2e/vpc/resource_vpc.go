@@ -74,6 +74,11 @@ func ResouceVpc() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"ipv4": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "IPv4 CIDR block of the VPC",
+			},
 		},
 
 		ReadContext:   ResourceReadVpc,
@@ -114,6 +119,7 @@ func ResourceCreateVpc(ctx context.Context, d *schema.ResourceData, m interface{
 	newvpc := models.VpcCreate{
 		VpcName:     d.Get("vpc_name").(string),
 		NetworkSize: d.Get("network_size").(int),
+		IPv4:        d.Get("ipv4").(string),
 	}
 	resvpc, err := apiClient.CreateVpc(d.Get("location").(string), &newvpc, d.Get("project_id").(string))
 	if err != nil {

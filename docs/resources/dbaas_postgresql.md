@@ -55,7 +55,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 - **`power_status`** (String): Power control operation. Accepts: `"start"`, `"stop"`, or `"restart"`.
 - **`size`** (Number): Disk size (in GB) for upgrades. Note: Instance must be stopped for upgrade.
 - **`vpc_list`** (Set of Number): List of VPC IDs to attach. Remove an ID to detach a VPC.
-- **`is_encryption_enabled`** (Boolean): Enable encryption. Defaults to `false`.
+- **`is_encryption_enabled`** (Boolean): Enable encryption. Defaults to `false`. Must be added only during creation of an instance.
 
 ### Read-Only Attributes
 

@@ -17,7 +17,8 @@ This resource allows you to manage vpc on your e2e clusters. When applied, a new
  resource "e2e_vpc" "vpc1" {
     vpc_name            = "vpc_name"
     location            = "Delhi"
-    project_id          = "12345"  # Replace with your actual project ID
+    project_id          = "12345"            # Replace with your actual project ID
+    ipv4                = "192.168.1.0/24"   # Replace this with IPv4 CIDR block you want to add
  }
 ```
 ## Schema
@@ -27,6 +28,7 @@ This resource allows you to manage vpc on your e2e clusters. When applied, a new
 - `location` (String) location should specified
 - `vpc_name` (String)
 - `project_id` (Required) (String) The ID of the project associated with the vpc. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
+- `ipv4` (String) The IPv4 CIDR block to use for this VPC, `e.g., 192.168.1.0/24.`
 
 ### Read-Only
 

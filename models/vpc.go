@@ -27,4 +27,5 @@ type VpcResponse struct {
 type VpcCreate struct {
 	VpcName     string `json:"vpc_name"`
 	NetworkSize int    `json:"network_size"`
+	IPv4        string `json:"ipv4"`
 }
