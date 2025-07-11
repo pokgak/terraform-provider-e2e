@@ -88,14 +88,15 @@ type Plan struct {
 }
 
 type MySqlCreate struct {
-	Name             string   `json:"name"`
-	Database         DBConfig `json:"database"`
-	Vpcs             []VPC    `json:"vpcs"`
-	SoftwareID       int      `json:"software_id"`
-	TemplateID       int      `json:"template_id"`
-	ParameterGroupId int      `json:"pg_id,omitempty"`
-	PublicIPRequired bool     `json:"public_ip_required"`
-	Group            string   `json:"group"`
+	Name                string   `json:"name"`
+	Database            DBConfig `json:"database"`
+	Vpcs                []VPC    `json:"vpcs"`
+	SoftwareID          int      `json:"software_id"`
+	TemplateID          int      `json:"template_id"`
+	ParameterGroupId    int      `json:"pg_id,omitempty"`
+	PublicIPRequired    bool     `json:"public_ip_required"`
+	Group               string   `json:"group"`
+	IsEncryptionEnabled bool     `json:"isEncryptionEnabled"`
 }
 
 type CommittedSKU struct {

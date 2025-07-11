@@ -103,7 +103,7 @@ func ResourceMySql() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Computed:    true,
-				Description: "look what to write",
+				Description: "To encrypt/decrpyt DBaaS",
 			},
 			"parameter_group_id": {
 				Type:        schema.TypeInt,
@@ -147,10 +147,11 @@ func ResourceMySql() *schema.Resource {
 func CreateMySqlObject(apiClient *client.Client, d *schema.ResourceData) (*models.MySqlCreate, diag.Diagnostics) {
 
 	mySqlobject := models.MySqlCreate{
-		Name:             d.Get("dbaas_name").(string),
-		ParameterGroupId: d.Get("parameter_group_id").(int),
-		PublicIPRequired: d.Get("public_ip_required").(bool),
-		Group:            d.Get("group").(string),
+		Name:                d.Get("dbaas_name").(string),
+		ParameterGroupId:    d.Get("parameter_group_id").(int),
+		PublicIPRequired:    d.Get("public_ip_required").(bool),
+		Group:               d.Get("group").(string),
+		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
 	}
 
 	dbList := d.Get("database").([]interface{})
