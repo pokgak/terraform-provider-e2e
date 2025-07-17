@@ -45,7 +45,23 @@ type CreateScalerGroupRequest struct {
 	PolicyType           string            `json:"policy_type"`
 	Policy               []ElasticPolicy   `json:"policy"`
 	ScheduledPolicy      []ScheduledPolicy `json:"scheduled_policy"`
-	VPC                  []string `json:"vpc,omitempty"`
+	VPC                  []VPCDetail       `json:"vpc,omitempty"`
+}
+
+type VPCDetail struct {
+	Name      string         `json:"name,omitempty"`
+	NetworkID int            `json:"network_id"`
+	IPv4CIDR  string         `json:"ipv4_cidr,omitempty"`
+	State     string         `json:"state,omitempty"`
+	Subnets   []SubnetDetail `json:"subnets,omitempty"`
+}
+
+type SubnetDetail struct {
+	ID         int    `json:"id"`
+	SubnetName string `json:"subnet_name"`
+	CIDR       string `json:"cidr"`
+	UsedIPs    int    `json:"usedIPs"`
+	TotalIPs   int    `json:"totalIPs"`
 }
 
 type CreateScalerGroupResponse struct {
@@ -173,3 +189,16 @@ type GetScalerSecurityGroupsResponse struct {
 }
 
 
+type UpdateScalerGroupRequest struct {
+	Name            string              `json:"name"`
+	PlanID 			string 				`json:"plan_id"`
+	MinNodes        int                 `json:"min_nodes"`
+	MaxNodes        int                 `json:"max_nodes"`
+	PolicyType      string              `json:"policy_type"`
+	Policy          []ElasticPolicy     `json:"policy"`
+	ScheduledPolicy []ScheduledPolicy   `json:"scheduled_policy"`
+}
+
+type UpdateDesiredNodeCountRequest struct {
+	Cardinality int `json:"cardinality"`
+}

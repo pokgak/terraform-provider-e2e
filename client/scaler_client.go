@@ -311,4 +311,194 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 }
 
 
+func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupRequest, projectID, location string) error {
+	url := c.Api_endpoint + "/scaler/scalegroups/update/" + id + "/"
+	log.Printf("[INFO] Sending request to update Scaler Group at: %s", url)
+
+	payloadBuf := new(bytes.Buffer)
+	if err := json.NewEncoder(payloadBuf).Encode(req); err != nil {
+		log.Printf("[ERROR] Failed to encode update payload: %v", err)
+		return fmt.Errorf("failed to encode update payload: %v", err)
+	}
+
+	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %v", err)
+	}
+
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+	log.Printf("[DEBUG] UpdateScalerGroup headers: %v", httpReq.Header)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] UpdateScalerGroup failed: status %d", resp.StatusCode)
+		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
+		return fmt.Errorf("update scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Scaler Group updated successfully: ID=%s", id)
+	return nil
+}
+
+func (c *Client) UpdateDesiredNodeCount(scalerGroupID int, desired int, projectID, location string) error {
+	url := c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/", scalerGroupID)
+	log.Printf("[INFO] Sending request to update desired node count for Scaler Group at: %s", url)
+
+	payload := &models.UpdateDesiredNodeCountRequest{Cardinality: desired}
+	payloadBuf := new(bytes.Buffer)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		log.Printf("[ERROR] Failed to encode update payload: %v", err)
+		return fmt.Errorf("failed to encode update payload: %v", err)
+	}
+
+	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %v", err)
+	}
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	log.Printf("[DEBUG] UpdateDesiredNodeCount headers: %v", httpReq.Header)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		log.Printf("[ERROR] UpdateDesiredNodeCount failed: status %d", resp.StatusCode)
+		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
+		return fmt.Errorf("update desired node count failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Desired node count updated successfully for Scaler Group ID=%d to %d", scalerGroupID, desired)
+	return nil
+}
+
+func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location string) error {
+	var url string
+	switch status {
+	case "Stopped":
+		url = c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/stop/", id)
+	case "Running":
+		url = c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/start/", id)
+	default:
+		return fmt.Errorf("unsupported status value: %s", status)
+	}
+
+	log.Printf("[INFO] Sending request to update scaler group status to: %s at: %s", status, url)
+
+	// Empty JSON payload
+	payloadBuf := new(bytes.Buffer)
+	if err := json.NewEncoder(payloadBuf).Encode(struct{}{}); err != nil {
+		log.Printf("[ERROR] Failed to encode status update payload: %v", err)
+		return fmt.Errorf("failed to encode status update payload: %v", err)
+	}
+
+	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %v", err)
+	}
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	log.Printf("[DEBUG] UpdateScalerGroupStatus headers: %v", httpReq.Header)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] UpdateScalerGroupStatus failed: status %d", resp.StatusCode)
+		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
+		return fmt.Errorf("update scaler group status to %s failed: status %d\nresponse: %s", status, resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Scaler Group status updated successfully to: %s", status)
+	return nil
+}
+
+
+func (c *Client) GetVpcDetailsByName( projectID, location string, name string) (*models.VPCDetail, error) {
+	url := fmt.Sprintf("%s/vpc/list/?page_no=1&per_page=100", c.Api_endpoint)
+	log.Printf("[INFO] Getting VPC details for name %q, projectID: %s, location: %s", name, projectID, location)
+	log.Printf("[DEBUG] VPC request URL: %s", url) 
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create VPC request: %v", err)
+		return nil, fmt.Errorf("failed to create VPC request: %v", err)
+	}
+
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		log.Printf("[ERROR] VPC request failed: %v", err)
+		return nil, fmt.Errorf("VPC request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read VPC response body: %v", err)
+		return nil, fmt.Errorf("failed to read VPC response: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] VPC request returned status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("VPC request failed with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []models.VPCDetail `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		log.Printf("[ERROR] Failed to unmarshal VPC response: %v", err)
+		return nil, fmt.Errorf("failed to parse VPC response: %v", err)
+	}
+
+	for _, vpc := range result.Data {
+		log.Printf("[DEBUG] Checking VPC name: %q", vpc.Name)
+		if vpc.Name == name {
+			log.Printf("[INFO] Matched VPC found: ID=%d, CIDR=%s", vpc.NetworkID, vpc.IPv4CIDR)
+			return &vpc, nil
+		}
+	}
+
+	log.Printf("[WARN] No VPC found with name %q", name)
+	return nil, fmt.Errorf("no VPC found with name %q", name)
+}
+
 

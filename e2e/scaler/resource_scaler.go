@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-    "strings"	
 	"strconv"
+	"strings"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceScalerGroup() *schema.Resource {
@@ -92,8 +93,8 @@ func ResourceScalerGroup() *schema.Resource {
 			},
 			"is_encryption_enabled": {
 				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
+				Required:    true,
+				// Default:     false,
 				ForceNew:    true,
 				Description: "Enable encryption for the scaler group. Defaults to false.",
 			},
@@ -106,21 +107,36 @@ func ResourceScalerGroup() *schema.Resource {
 			},
 			"is_public_ip_required": {
 				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
+				Required:    true,
+				// Default:     true,
 				ForceNew:    true,
 				Description: "Whether to assign a public IP to nodes. Defaults to true.",
 			},
+			"provision_status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{"Running", "Stopped"}, false),
+				Description: "Set to 'Stopped' to stop the Scaler Group, or 'Running' to start it.",
+			},
+
+
 
 			"min_nodes": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(int)
+					if v < 1 {
+						errs = append(errs, fmt.Errorf("%q must be at least 1, got: %d", key, v))
+					}
+					return
+				},
 			},
+
 			"max_nodes": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
+				// ForceNew: true,
 			},
 			"desired": {
 				Type:     schema.TypeInt,
@@ -130,22 +146,72 @@ func ResourceScalerGroup() *schema.Resource {
 			"policy_type": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
+				// ForceNew: true,
 			},
 			"vpc": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				DefaultFunc: func() (interface{}, error) {
-					return []interface{}{}, nil
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					ForceNew: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"name": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+							"network_id": {
+								Type:     schema.TypeInt,
+								Computed: true, // if fetched from name
+							},
+							"ipv4_cidr": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"state": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"subnets": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"id": {
+											Type:     schema.TypeInt,
+											Computed: true,
+										},
+										"subnet_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"cidr": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"used_ips": {
+											Type:     schema.TypeInt,
+											Computed: true,
+										},
+
+										"total_ips": {
+											Type:     schema.TypeInt,
+											Computed: true,
+										},
+									},
+								},
+							},
+						},
+					},
 				},
-				Description: "List of VPC IDs. Defaults to an empty list.",
-			},
+
+
+			
+
+
 			"policy": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
+				// ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type":           {Type: schema.TypeString, Required: true},
@@ -162,7 +228,7 @@ func ResourceScalerGroup() *schema.Resource {
 			"scheduled_policy": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
+				// ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type":       {Type: schema.TypeString, Required: true},
@@ -175,6 +241,27 @@ func ResourceScalerGroup() *schema.Resource {
 		CreateContext: resourceCreateScalerGroup,
 		ReadContext:   resourceReadScalerGroup,
 		DeleteContext: resourceDeleteScalerGroup,
+		UpdateContext: resourceUpdateScalerGroup,
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+			min := diff.Get("min_nodes").(int)
+			desired := diff.Get("desired").(int)
+			max := diff.Get("max_nodes").(int)
+		
+			if min > desired {
+				return fmt.Errorf("min_nodes (%d) cannot be greater than desired (%d)", min, desired)
+			}
+		
+			if desired > max {
+				return fmt.Errorf("desired (%d) cannot be greater than max_nodes (%d)", desired, max)
+			}
+		
+			return nil
+		},
+		
+		
+		
+		
+		
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -299,6 +386,20 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("vm_image_id", strconv.Itoa(group.ImageID)); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to set vm_image_id: %v", err))
 	}
+	// Normalize provision_status to avoid diff when API returns transitional state
+	normalizedStatus := group.ProvisionStatus
+	if group.ProvisionStatus == "Stopping" {
+		log.Printf("[INFO] Normalizing provision_status 'Stopping' → 'Stopped'")
+		normalizedStatus = "Stopped"
+	} else if group.ProvisionStatus == "Starting" {
+		log.Printf("[INFO] Normalizing provision_status 'Starting' → 'Running'")
+		normalizedStatus = "Running"
+	}
+
+	if err := d.Set("provision_status", normalizedStatus); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to set provision_status: %v", err))
+	}
+
 
 	// Optional: recompute slug_name using template_id and plan_name
 	if templateID, ok := d.Get("vm_template_id").(int); ok && templateID > 0 {
@@ -346,34 +447,79 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		return nil, fmt.Errorf("failed to fetch plan details: %v", err)
 	}
 
+	// Expand elastic policies
 	var elasticPolicies []models.ElasticPolicy
-	for _, p := range d.Get("policy").([]interface{}) {
-		pMap := p.(map[string]interface{})
-		elasticPolicies = append(elasticPolicies, models.ElasticPolicy{
-			Type:          pMap["type"].(string),
-			Adjust:        pMap["adjust"].(int),
-			Parameter:     pMap["parameter"].(string),
-			Operator:      pMap["operator"].(string),
-			Value:         pMap["value"].(string),
-			PeriodNumber:  pMap["period_number"].(string),
-			PeriodSeconds: pMap["period_seconds"].(string),
-			Cooldown:      pMap["cooldown"].(string),
-		})
+	if v, ok := d.GetOk("policy"); ok {
+		for _, p := range v.([]interface{}) {
+			pMap := p.(map[string]interface{})
+			elasticPolicies = append(elasticPolicies, models.ElasticPolicy{
+				Type:          pMap["type"].(string),
+				Adjust:        pMap["adjust"].(int),
+				Parameter:     pMap["parameter"].(string),
+				Operator:      pMap["operator"].(string),
+				Value:         pMap["value"].(string),
+				PeriodNumber:  pMap["period_number"].(string),
+				PeriodSeconds: pMap["period_seconds"].(string),
+				Cooldown:      pMap["cooldown"].(string),
+			})
+		}
 	}
 
+	// Expand scheduled policies
 	var schedPolicies []models.ScheduledPolicy
-	for _, s := range d.Get("scheduled_policy").([]interface{}) {
-		sMap := s.(map[string]interface{})
-		schedPolicies = append(schedPolicies, models.ScheduledPolicy{
-			Type:       sMap["type"].(string),
-			Adjust:     sMap["adjust"].(string),
-			Recurrence: sMap["recurrence"].(string),
-		})
+	if v, ok := d.GetOk("scheduled_policy"); ok {
+		for _, s := range v.([]interface{}) {
+			sMap := s.(map[string]interface{})
+			schedPolicies = append(schedPolicies, models.ScheduledPolicy{
+				Type:       sMap["type"].(string),
+				Adjust:     sMap["adjust"].(string),
+				Recurrence: sMap["recurrence"].(string),
+			})
+		}
 	}
 
-	var vpcList []string
-	for _, v := range d.Get("vpc").([]interface{}) {
-		vpcList = append(vpcList, v.(string))
+	// Expand VPC block
+	var vpcDetails []models.VPCDetail
+	if v, ok := d.GetOk("vpc"); ok {
+		for _, vRaw := range v.([]interface{}) {
+			vMap := vRaw.(map[string]interface{})
+			vpcName := vMap["name"].(string)
+
+			vpcMeta, err := client.GetVpcDetailsByName(projectID, location, vpcName)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get VPC details for %s: %v", vpcName, err)
+			}
+
+			// Convert subnet_ids into lookup map
+			subnetIDSet := make(map[int]struct{})
+			if rawList, ok := vMap["subnet_ids"].([]interface{}); ok {
+				for _, sid := range rawList {
+					subnetIDSet[sid.(int)] = struct{}{}
+				}
+			}
+
+			// Filter and collect subnets
+			var selectedSubnets []models.SubnetDetail
+			for _, subnet := range vpcMeta.Subnets {
+				if _, ok := subnetIDSet[subnet.ID]; ok {
+					selectedSubnets = append(selectedSubnets, models.SubnetDetail{
+						ID:         subnet.ID,
+						SubnetName: subnet.SubnetName,
+						CIDR:       subnet.CIDR,
+						UsedIPs:    subnet.UsedIPs,
+						TotalIPs:   subnet.TotalIPs,
+					})
+				}
+			}
+
+			vpcDetails = append(vpcDetails, models.VPCDetail{
+				Name:      vpcMeta.Name,
+				NetworkID: vpcMeta.NetworkID,
+				IPv4CIDR:  vpcMeta.IPv4CIDR,
+				State:     vpcMeta.State,
+				Subnets:   selectedSubnets,
+			})
+		}
 	}
 
 	return &models.CreateScalerGroupRequest{
@@ -395,29 +541,172 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		PolicyType:           d.Get("policy_type").(string),
 		Policy:               elasticPolicies,
 		ScheduledPolicy:      schedPolicies,
-		VPC:                  vpcList,
+		VPC:                  vpcDetails,
 	}, nil
 }
 
 
+func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	apiClient := m.(*client.Client)
+	projectID := d.Get("project_id").(string)
+	location := d.Get("location").(string)
+	id := d.Id()
+
+	// Handle stopping the scaler group if provision_status is set to "Stopped"
+	// Handle provision_status update separately
+	if d.HasChange("provision_status") {
+		oldStatus, newStatus := d.GetChange("provision_status")
+		log.Printf("[INFO] Changing provision_status from %s → %s", oldStatus, newStatus)
+
+		intID, err := strconv.Atoi(id)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("invalid scaler group ID: %v", err))
+		}
+
+		if err := apiClient.UpdateScalerGroupStatus(intID, newStatus.(string), projectID, location); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to update provision_status to %s: %v", newStatus, err))
+		}
+
+		return resourceReadScalerGroup(ctx, d, m)
+	}
+
+
+	// Validate desired within min-max range
+	minNodes := d.Get("min_nodes").(int)
+	maxNodes := d.Get("max_nodes").(int)
+	desired := d.Get("desired").(int)
+
+	if desired < minNodes || desired > maxNodes {
+		return diag.Errorf("desired node count (%d) must be between min_nodes (%d) and max_nodes (%d)", desired, minNodes, maxNodes)
+	}
+
+	// If only desired changed, call separate API
+	if d.HasChange("desired") &&
+		!(d.HasChange("min_nodes") || d.HasChange("max_nodes") || d.HasChange("policy_type") || d.HasChange("policy") || d.HasChange("scheduled_policy")) {
+		log.Printf("[INFO] Only desired node count changed; using separate API.")
+		intID, err := strconv.Atoi(id)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("invalid scaler group ID: %v", err))
+		}
+		if err := apiClient.UpdateDesiredNodeCount(intID, desired, projectID, location); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to update desired node count: %v", err))
+		}
+		return resourceReadScalerGroup(ctx, d, m)
+	}
+
+	// Skip update if nothing relevant changed
+	if !(d.HasChange("min_nodes") || d.HasChange("max_nodes") || d.HasChange("policy_type") || d.HasChange("policy") || d.HasChange("scheduled_policy")) {
+		log.Println("[INFO] No relevant changes detected, skipping update.")
+		return nil
+	}
+
+	// Expand policy fields
+	policies := []models.ElasticPolicy{}
+	for _, p := range d.Get("policy").([]interface{}) {
+		pMap := p.(map[string]interface{})
+		policies = append(policies, models.ElasticPolicy{
+			Type:          pMap["type"].(string),
+			Adjust:        pMap["adjust"].(int),
+			Parameter:     pMap["parameter"].(string),
+			Operator:      pMap["operator"].(string),
+			Value:         pMap["value"].(string),
+			PeriodNumber:  pMap["period_number"].(string),
+			PeriodSeconds: pMap["period_seconds"].(string),
+			Cooldown:      pMap["cooldown"].(string),
+		})
+	}
+
+	schedPolicies := []models.ScheduledPolicy{}
+	for _, s := range d.Get("scheduled_policy").([]interface{}) {
+		sMap := s.(map[string]interface{})
+		schedPolicies = append(schedPolicies, models.ScheduledPolicy{
+			Type:       sMap["type"].(string),
+			Adjust:     sMap["adjust"].(string),
+			Recurrence: sMap["recurrence"].(string),
+		})
+	}
+
+	// Create request object
+	req := &models.UpdateScalerGroupRequest{
+		Name:            d.Get("name").(string),
+		PlanID:          d.Get("plan_id").(string),
+		MinNodes:        minNodes,
+		MaxNodes:        maxNodes,
+		PolicyType:      d.Get("policy_type").(string),
+		Policy:          policies,
+		ScheduledPolicy: schedPolicies,
+	}
+
+	log.Printf("[INFO] Updating ScalerGroup %s with new configuration...", id)
+	if err := apiClient.UpdateScalerGroup(id, req, projectID, location); err != nil {
+		return diag.FromErr(fmt.Errorf("failed to update scaler group: %v", err))
+	}
+
+	return resourceReadScalerGroup(ctx, d, m)
+}
 
 
 
-// func trimVMImageName(imageName string) string {
-// 	if idx := indexOfFirstUnderscore(imageName); idx != -1 {
-// 		return imageName[:idx]
-// 	}
-// 	return imageName
-// }
-
-// func indexOfFirstUnderscore(s string) int {
-// 	for i := range s {
-// 		if s[i] == '_' {
-// 			return i
+// func expandVPCList(d *schema.ResourceData) []VPC {
+// 	rawList := d.Get("vpcs").([]interface{})
+// 	var vpcs []VPC
+  
+// 	for _, raw := range rawList {
+// 	  data := raw.(map[string]interface{})
+// 	  vpc := VPC{
+// 		Name:      data["name"].(string),
+// 		NetworkID: data["network_id"].(int),
+// 		IPv4CIDR:  data["ipv4_cidr"].(string),
+// 		State:     data["state"].(string),
+// 	  }
+  
+// 	  if subnetsRaw, ok := data["subnets"]; ok && subnetsRaw != nil {
+// 		for _, subnetRaw := range subnetsRaw.([]interface{}) {
+// 		  subnet := subnetRaw.(map[string]interface{})
+// 		  vpc.Subnets = append(vpc.Subnets, subnet) // You may want to map to struct
 // 		}
+// 	  }
+  
+// 	  vpcs = append(vpcs, vpc)
 // 	}
-// 	return -1
+  
+// 	return vpcs
+//   }
+  
+
+// func expandCreateScalerGroupRequestWithVPCNames(d *schema.ResourceData, client *client.Client, projectID, location string, sgID int) (*models.CreateScalerGroupRequest, error) {
+// 	req, err := expandCreateScalerGroupRequest(d, client, projectID, location, sgID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	// Resolve vpc_names to vpc_ids
+// 	vpcNamesIface, ok := d.GetOk("vpc_names")
+// 	if !ok {
+// 		return req, nil // No vpc_names provided
+// 	}
+
+// 	vpcNames := vpcNamesIface.([]interface{})
+// 	var vpcIDs []string
+// 	for _, name := range vpcNames {
+// 		vpcID, err := client.GetVpcIDByName(name.(string), projectID, location)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to resolve VPC name %q: %v", name, err)
+// 		}
+// 		vpcIDs = append(vpcIDs, vpcID)
+// 	}
+
+// 	req.VPC = vpcIDs
+// 	return req, nil
 // }
+
+
+
+
+
+
+
+
 
 
 
