@@ -205,12 +205,45 @@ type UpdateDesiredNodeCountRequest struct {
 
 
 
-// Attach VPC Request
-type AttachVpcRequest struct {
-	VPCName string `json:"vpc_name"`
+// AttachVPCRequest represents the payload to attach a VPC
+type AttachVPCRequest struct {
+	VPCID string `json:"vpc_id"`
 }
 
-// Detach VPC Request
-type DetachVpcRequest struct {
-	VPCName string `json:"vpc_name"`
+// AttachVPCResponse represents the API response for VPC attach
+type AttachVPCResponse struct {
+	Code    int               `json:"code"`
+	Data    string            `json:"data"`
+	Errors  map[string]string `json:"errors"`
+	Message string            `json:"message"`
+}
+
+// DetachVPCResponse represents the API response for VPC detach
+type DetachVPCResponse struct {
+	Code    int               `json:"code"`
+	Data    string            `json:"data"`
+	Errors  map[string]string `json:"errors"`
+	Message string            `json:"message"`
+}
+
+
+type PublicIPStatusResponse struct {
+	Code    int                      `json:"code"`
+	Data    PublicIPStatusData       `json:"data"`
+	Errors  map[string]interface{}   `json:"errors"`
+	Message string                   `json:"message"`
+}
+
+type PublicIPStatusData struct {
+	IsPublicIPRequired bool `json:"is_public_ip_required"`
+}
+
+
+
+
+type PublicIPActionResponse struct {
+	Code    int                    `json:"code"`
+	Data    string                 `json:"data"`
+	Errors  map[string]interface{} `json:"errors"`
+	Message string                 `json:"message"`
 }

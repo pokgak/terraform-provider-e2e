@@ -10,6 +10,7 @@ import (
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -107,11 +108,11 @@ func ResourceScalerGroup() *schema.Resource {
 			},
 			"is_public_ip_required": {
 				Type:        schema.TypeBool,
-				Required:    true,
-				// Default:     true,
-				ForceNew:    true,
-				Description: "Whether to assign a public IP to nodes. Defaults to true.",
+				Optional:    true,
+				Default:     true,
+				Description: "Whether to assign a public IP to nodes. Can only be updated when the scaler group is stopped and a VPC is attached.",
 			},
+
 			"provision_status": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -151,8 +152,8 @@ func ResourceScalerGroup() *schema.Resource {
 			"vpc": {
 					Type:     schema.TypeList,
 					Optional: true,
-					MaxItems: 1,
-					ForceNew: true,
+					// MaxItems: 1,
+					// ForceNew: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"name": {
@@ -263,8 +264,9 @@ func ResourceScalerGroup() *schema.Resource {
 		
 		
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
+		
 	}
 }
 
@@ -399,6 +401,8 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 	if err := d.Set("provision_status", normalizedStatus); err != nil {
 		return diag.FromErr(fmt.Errorf("failed to set provision_status: %v", err))
 	}
+	
+	
 
 	// ---------------------
 // FETCH AND SET VPC INFO
@@ -454,6 +458,14 @@ if err := d.Set("vpc", fetchedVPCs); err != nil {
 			log.Printf("[WARN] Failed to recompute slug_name: %v", err)
 		}
 	}
+
+	ipStatus, err := apiClient.GetPublicIPStatus(id, projectID, location)
+if err != nil {
+	log.Printf("[WARN] Failed to fetch public IP status: %v", err)
+} else {
+	d.Set("is_public_ip_required", ipStatus.IsPublicIPRequired)
+}
+
 
 	log.Printf("[INFO] ScalerGroup ID %s state synced successfully", id)
 	return nil
@@ -628,6 +640,117 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 		return resourceReadScalerGroup(ctx, d, m)
 	}
 
+
+	if d.HasChange("vpc") {
+		// Fetch current scaler group status to ensure it's stopped
+		group, err := apiClient.GetScalerGroup(d.Id(), projectID, location)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("failed to fetch scaler group status for update: %w", err))
+		}
+		if group.ProvisionStatus != "Stopped" {
+			return diag.Errorf("VPCs can only be attached or detached when the scaler group is in 'stopped' state. Current state: %q", group.ProvisionStatus)
+		}
+	
+		// Compare old vs new VPC names
+		oldRaw, newRaw := d.GetChange("vpc")
+		oldList := extractVpcNames(oldRaw.([]interface{}))
+		newList := extractVpcNames(newRaw.([]interface{}))
+	
+		toAttach := difference(newList, oldList)
+		toDetach := difference(oldList, newList)
+	
+		// Attach new VPCs
+		for _, vpcName := range toAttach {
+			vpcDetails, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to get VPC details for name %q: %w", vpcName, err))
+			}
+			err = apiClient.AttachVPCToScalerGroup(d.Id(), []models.VPCDetail{*vpcDetails}, projectID, location)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to attach VPC %q: %w", vpcName, err))
+			}
+		}
+	
+			// Detach removed VPCs
+			for _, vpcName := range toDetach {
+				vpcDetails, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf("failed to get VPC ID for name %q: %w", vpcName, err))
+				}
+				err = apiClient.DetachVPCFromScalerGroup(d.Id(), strconv.Itoa(vpcDetails.NetworkID), projectID, location)
+				if err != nil {
+					return diag.FromErr(fmt.Errorf("failed to detach VPC %q: %w", vpcName, err))
+				}
+			}
+	
+		// Rebuild vpc state from user-defined list
+		vpcNames := extractVpcNames(d.Get("vpc").([]interface{}))
+		vpcStateList := []map[string]interface{}{}
+	
+		for _, vpcName := range vpcNames {
+			vpcDetails, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to refresh VPC details for %q: %w", vpcName, err))
+			}
+	
+			subnetList := []map[string]interface{}{}
+			for _, sn := range vpcDetails.Subnets {
+				subnetList = append(subnetList, map[string]interface{}{
+					"id":          sn.ID,
+					"subnet_name": sn.SubnetName,
+					"cidr":        sn.CIDR,
+					"used_ips":    sn.UsedIPs,
+					"total_ips":   sn.TotalIPs,
+				})
+			}
+	
+			vpcStateList = append(vpcStateList, map[string]interface{}{
+				"name":       vpcDetails.Name,
+				"network_id": vpcDetails.NetworkID,
+				"ipv4_cidr":  vpcDetails.IPv4CIDR,
+				"state":      vpcDetails.State,
+				"subnets":    subnetList,
+			})
+		}
+	
+		if err := d.Set("vpc", vpcStateList); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to set vpc state: %w", err))
+		}
+	}
+	
+	if d.HasChange("is_public_ip_required") {
+		oldVal, newVal := d.GetChange("is_public_ip_required")
+		log.Printf("[INFO] is_public_ip_required changed from %v to %v", oldVal, newVal)
+	
+		currentStatus := d.Get("provision_status").(string)
+		if currentStatus != "Stopped" {
+			return diag.Errorf("ScalerGroup must be in 'Stopped' state to attach/detach public IP")
+		}
+	
+		// Confirm at least one VPC is attached
+		vpcsRaw, ok := d.GetOk("vpc")
+		if !ok || len(vpcsRaw.([]interface{})) == 0 {
+			return diag.Errorf("At least one VPC must be attached to attach/detach public IP")
+		}
+	
+		if newVal.(bool) {
+			log.Printf("[INFO] Triggering Public IP ATTACH")
+			_, err := apiClient.AttachPublicIP(d.Id(), projectID, location)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to attach public IP: %v", err))
+			}
+		} else {
+			log.Printf("[INFO] Triggering Public IP DETACH")
+			_, err := apiClient.DetachPublicIP(d.Id(), projectID, location)
+			if err != nil {
+				return diag.FromErr(fmt.Errorf("failed to detach public IP: %v", err))
+			}
+		}
+	}
+	
+	
+	
+
 	// Skip update if nothing relevant changed
 	if !(d.HasChange("min_nodes") || d.HasChange("max_nodes") || d.HasChange("policy_type") || d.HasChange("policy") || d.HasChange("scheduled_policy")) {
 		log.Println("[INFO] No relevant changes detected, skipping update.")
@@ -679,6 +802,41 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 	return resourceReadScalerGroup(ctx, d, m)
 }
 
+func extractVpcNames(vpcs []interface{}) []string {
+	var names []string
+	for _, raw := range vpcs {
+		if m, ok := raw.(map[string]interface{}); ok {
+			if name, ok := m["name"].(string); ok {
+				names = append(names, name)
+			}
+		}
+	}
+	return names
+}
+
+func convertToStringSet(list []interface{}) []string {
+	result := make([]string, 0, len(list))
+	for _, item := range list {
+		if str, ok := item.(string); ok {
+			result = append(result, str)
+		}
+	}
+	return result
+}
+
+func difference(a, b []string) []string {
+	mb := map[string]bool{}
+	for _, x := range b {
+		mb[x] = true
+	}
+	var diff []string
+	for _, x := range a {
+		if !mb[x] {
+			diff = append(diff, x)
+		}
+	}
+	return diff
+}
 
 
 // func expandVPCList(d *schema.ResourceData) []VPC {
@@ -766,3 +924,31 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			// 		})
 			// 	}
 			// }
+
+
+
+			// func CustomImportStateFunc(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+			// 	parts := strings.Split(d.Id(), "/")
+			// 	if len(parts) != 3 {
+			// 		return nil, fmt.Errorf("invalid ID format: expected project_id/location/resource_id")
+			// 	}
+			
+			// 	projectID := parts[0]
+			// 	location := parts[1]
+			// 	nodeID := parts[2]
+			
+			// 	// Set fields needed for Read API
+			// 	d.Set("project_id", projectID)
+			// 	d.Set("location", location)
+			// 	d.Set("node_id", nodeID)
+			
+			// 	// Default values for fields not returned by GET API
+			// 	d.Set("is_encryption_enabled", false) // or true, depending on your real usage
+			// 	d.Set("encryption_passphrase", "")    // empty string is default
+			// 	d.Set("is_public_ip_required", true)  // or false if that's your expected default
+			
+			// 	d.SetId(nodeID)
+			
+			// 	return []*schema.ResourceData{d}, nil
+			// }
+			

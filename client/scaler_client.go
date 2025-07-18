@@ -310,7 +310,6 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 	return "", "", fmt.Errorf("plan name %s not found in template %d", planName, templateID)
 }
 
-
 func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupRequest, projectID, location string) error {
 	url := c.Api_endpoint + "/scaler/scalegroups/update/" + id + "/"
 	log.Printf("[INFO] Sending request to update Scaler Group at: %s", url)
@@ -448,7 +447,6 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 	return nil
 }
 
-
 func (c *Client) GetVpcDetailsByName( projectID, location string, name string) (*models.VPCDetail, error) {
 	url := fmt.Sprintf("%s/vpc/list/?page_no=1&per_page=100", c.Api_endpoint)
 	log.Printf("[INFO] Getting VPC details for name %q, projectID: %s, location: %s", name, projectID, location)
@@ -501,4 +499,196 @@ func (c *Client) GetVpcDetailsByName( projectID, location string, name string) (
 	return nil, fmt.Errorf("no VPC found with name %q", name)
 }
 
+func (c *Client) AttachVPCToScalerGroup(scalerGroupID string, vpcs []models.VPCDetail, projectID, location string) error {
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scalerGroupID + "/vpc/action/"
+	log.Printf("[INFO] Attaching %d VPC(s) to Scaler Group %s", len(vpcs), scalerGroupID)
+
+	payload := map[string][]models.VPCDetail{
+		"vpc": vpcs,
+	}
+
+	payloadBuf := new(bytes.Buffer)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		return fmt.Errorf("failed to encode attach VPC payload: %v", err)
+	}
+
+	req, err := http.NewRequest("PUT", url, payloadBuf)
+	if err != nil {
+		return fmt.Errorf("failed to create attach VPC request: %v", err)
+	}
+
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("attach VPC request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("attach VPC failed: status %d, body: %s", resp.StatusCode, body)
+	}
+
+	log.Printf("[INFO] Successfully attached VPC(s) to Scaler Group %s", scalerGroupID)
+	return nil
+}
+
+
+func (c *Client) DetachVPCFromScalerGroup(scalerGroupID, vpcID, projectID, location string) error {
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scalerGroupID + "/vpc/action/"
+	log.Printf("[INFO] Detaching VPC %s from Scaler Group %s", vpcID, scalerGroupID)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create detach VPC request: %v", err)
+	}
+
+	q := req.URL.Query()
+	q.Add("vpc_id", vpcID)
+	req.URL.RawQuery = q.Encode()
+
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("detach VPC request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("detach VPC failed: status %d, body: %s", resp.StatusCode, body)
+	}
+
+	log.Printf("[INFO] Successfully detached VPC %s from Scaler Group %s", vpcID, scalerGroupID)
+	return nil
+}
+
+
+func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*models.PublicIPStatusData, error) {
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
+	log.Printf("[INFO] Fetching public IP status for Scaler Group ID: %s", scaleGroupID)
+
+	httpReq, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create GET request: %v", err)
+		return nil, fmt.Errorf("failed to create GET request: %v", err)
+	}
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	log.Printf("[DEBUG] GetPublicIPStatus request URL: %s", httpReq.URL.String())
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return nil, fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return nil, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] GetPublicIPStatus failed: status %d", resp.StatusCode)
+		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
+		return nil, fmt.Errorf("get public IP status failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var result models.PublicIPStatusResponse
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		log.Printf("[ERROR] Failed to decode public IP status response: %v", err)
+		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
+		return nil, fmt.Errorf("failed to decode public IP status response: %v\nresponse body: %s", err, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Public IP required: %v", result.Data.IsPublicIPRequired)
+	return &result.Data, nil
+}
+
+
+func (c *Client) AttachPublicIP(scaleGroupID, projectID, location string) (*models.PublicIPActionResponse, error) {
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
+	log.Printf("[INFO] Attaching Public IP to Scaler Group ID: %s", scaleGroupID)
+
+	httpReq, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create PUT request: %v", err)
+		return nil, fmt.Errorf("failed to create PUT request: %v", err)
+	}
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return nil, fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return nil, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] AttachPublicIP failed: status %d", resp.StatusCode)
+		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
+		return nil, fmt.Errorf("attach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var result models.PublicIPActionResponse
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		log.Printf("[ERROR] Failed to decode response: %v", err)
+		return nil, fmt.Errorf("failed to decode attach public IP response: %v\nresponse body: %s", err, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Public IP attached: %s", result.Data)
+	return &result, nil
+}
+
+
+
+func (c *Client) DetachPublicIP(scaleGroupID, projectID, location string) (*models.PublicIPActionResponse, error) {
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
+	log.Printf("[INFO] Detaching Public IP from Scaler Group ID: %s", scaleGroupID)
+
+	httpReq, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create DELETE request: %v", err)
+		return nil, fmt.Errorf("failed to create DELETE request: %v", err)
+	}
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return nil, fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return nil, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] DetachPublicIP failed: status %d", resp.StatusCode)
+		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
+		return nil, fmt.Errorf("detach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var result models.PublicIPActionResponse
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		log.Printf("[ERROR] Failed to decode response: %v", err)
+		return nil, fmt.Errorf("failed to decode detach public IP response: %v\nresponse body: %s", err, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Public IP detached: %s", result.Data)
+	return &result, nil
+}
 
