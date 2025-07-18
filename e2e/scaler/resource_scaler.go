@@ -400,6 +400,50 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("failed to set provision_status: %v", err))
 	}
 
+	// ---------------------
+// FETCH AND SET VPC INFO
+// ---------------------
+var fetchedVPCs []map[string]interface{}
+
+// Read the current state VPC list to get names
+if rawVPCList, ok := d.GetOk("vpc"); ok {
+	for _, v := range rawVPCList.([]interface{}) {
+		vpcMap := v.(map[string]interface{})
+		vpcName := vpcMap["name"].(string)
+
+		vpcDetail, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
+		if err != nil {
+			log.Printf("[WARN] Failed to fetch VPC details for %s: %v", vpcName, err)
+			continue
+		}
+
+		vpcEntry := map[string]interface{}{
+			"name":       vpcDetail.Name,
+			"network_id": vpcDetail.NetworkID,
+			"ipv4_cidr":  vpcDetail.IPv4CIDR,
+			"state":      vpcDetail.State,
+		}
+
+		var subnets []map[string]interface{}
+		for _, s := range vpcDetail.Subnets {
+			subnets = append(subnets, map[string]interface{}{
+				"id":          s.ID,
+				"subnet_name": s.SubnetName,
+				"cidr":        s.CIDR,
+				"used_ips":    s.UsedIPs,
+				"total_ips":   s.TotalIPs,
+			})
+		}
+
+		vpcEntry["subnets"] = subnets
+		fetchedVPCs = append(fetchedVPCs, vpcEntry)
+	}
+}
+
+if err := d.Set("vpc", fetchedVPCs); err != nil {
+	return diag.FromErr(fmt.Errorf("failed to set vpc details: %v", err))
+}
+
 
 	// Optional: recompute slug_name using template_id and plan_name
 	if templateID, ok := d.Get("vm_template_id").(int); ok && templateID > 0 {
@@ -490,18 +534,9 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 				return nil, fmt.Errorf("failed to get VPC details for %s: %v", vpcName, err)
 			}
 
-			// Convert subnet_ids into lookup map
-			subnetIDSet := make(map[int]struct{})
-			if rawList, ok := vMap["subnet_ids"].([]interface{}); ok {
-				for _, sid := range rawList {
-					subnetIDSet[sid.(int)] = struct{}{}
-				}
-			}
 
-			// Filter and collect subnets
 			var selectedSubnets []models.SubnetDetail
-			for _, subnet := range vpcMeta.Subnets {
-				if _, ok := subnetIDSet[subnet.ID]; ok {
+				for _, subnet := range vpcMeta.Subnets {
 					selectedSubnets = append(selectedSubnets, models.SubnetDetail{
 						ID:         subnet.ID,
 						SubnetName: subnet.SubnetName,
@@ -510,7 +545,7 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 						TotalIPs:   subnet.TotalIPs,
 					})
 				}
-			}
+
 
 			vpcDetails = append(vpcDetails, models.VPCDetail{
 				Name:      vpcMeta.Name,
@@ -544,7 +579,6 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		VPC:                  vpcDetails,
 	}, nil
 }
-
 
 func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)
@@ -710,3 +744,25 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 
 
 
+
+			// // Convert subnet_ids into lookup map
+			// subnetIDSet := make(map[int]struct{})
+			// if rawList, ok := vMap["subnet_ids"].([]interface{}); ok {
+			// 	for _, sid := range rawList {
+			// 		subnetIDSet[sid.(int)] = struct{}{}
+			// 	}
+			// }
+
+			// // Filter and collect subnets
+			// var selectedSubnets []models.SubnetDetail
+			// for _, subnet := range vpcMeta.Subnets {
+			// 	if _, ok := subnetIDSet[subnet.ID]; ok {
+			// 		selectedSubnets = append(selectedSubnets, models.SubnetDetail{
+			// 			ID:         subnet.ID,
+			// 			SubnetName: subnet.SubnetName,
+			// 			CIDR:       subnet.CIDR,
+			// 			UsedIPs:    subnet.UsedIPs,
+			// 			TotalIPs:   subnet.TotalIPs,
+			// 		})
+			// 	}
+			// }

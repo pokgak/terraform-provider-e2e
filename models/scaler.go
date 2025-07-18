@@ -202,3 +202,15 @@ type UpdateScalerGroupRequest struct {
 type UpdateDesiredNodeCountRequest struct {
 	Cardinality int `json:"cardinality"`
 }
+
+
+
+// Attach VPC Request
+type AttachVpcRequest struct {
+	VPCName string `json:"vpc_name"`
+}
+
+// Detach VPC Request
+type DetachVpcRequest struct {
+	VPCName string `json:"vpc_name"`
+}
