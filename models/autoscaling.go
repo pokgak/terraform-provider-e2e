@@ -10,20 +10,20 @@ type ScaleGroupNode struct {
 }
 
 type ElasticPolicy struct {
-	Type          string `json:"type"`         
-	Adjust        int    `json:"adjust"`         
-	Parameter     string `json:"parameter"`      
-	Operator      string `json:"operator"`      
-	Value         string `json:"value"`         
-	PeriodNumber  string `json:"period_number"`  
-	PeriodSeconds string `json:"period"`         
-	Cooldown      string `json:"cooldown"`       
+	Type          string `json:"type"`
+	Adjust        int    `json:"adjust"`
+	Parameter     string `json:"parameter"`
+	Operator      string `json:"operator"`
+	Value         string `json:"value"`
+	PeriodNumber  string `json:"period_number"`
+	PeriodSeconds string `json:"period"`
+	Cooldown      string `json:"cooldown"`
 }
 
 type ScheduledPolicy struct {
-	Type       string `json:"type"`       
-	Adjust     string `json:"adjust"`     
-	Recurrence string `json:"recurrence"` 
+	Type       string `json:"type"`
+	Adjust     string `json:"adjust"`
+	Recurrence string `json:"recurrence"`
 }
 
 type CreateScalerGroupRequest struct {
@@ -36,8 +36,8 @@ type CreateScalerGroupRequest struct {
 	VMImageName          string            `json:"vm_image_name"`
 	VMTemplateID         int               `json:"vm_template_id"`
 	MyAccountSGID        int               `json:"my_account_sg_id"`
-	IsEncryptionEnabled  bool              `json:"isEncryptionEnabled"`      
-	EncryptionPassphrase string `json:"encryption_passphrase,omitempty"`
+	IsEncryptionEnabled  bool              `json:"isEncryptionEnabled"`
+	EncryptionPassphrase string            `json:"encryption_passphrase,omitempty"`
 	IsPublicIPRequired   bool              `json:"is_public_ip_required"`
 	MinNodes             string            `json:"min_nodes"`
 	MaxNodes             string            `json:"max_nodes"`
@@ -72,20 +72,20 @@ type CreateScalerGroupResponse struct {
 }
 
 type ScalerGroupCreateDetails struct {
-	ID                  string `json:"id"`
-	Name                string `json:"name"`
-	VMImageName         string `json:"vm_image_name"`
-	ProvisionStatus     string `json:"provision_status"`
-	Running             int    `json:"running"`
-	Desired             int    `json:"desired"`
-	Tags                string `json:"tags"`
-	MinNodes            int    `json:"min_nodes"`
-	MaxNodes            int    `json:"max_nodes"`
-	CustomerID          int    `json:"customer_id"`
-	PlanID              int    `json:"plan_id"`
-	ImageID             int    `json:"image_id"`
-	VPCNames            string `json:"vpc_names"`
-	ElasticPolicy       struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	VMImageName     string `json:"vm_image_name"`
+	ProvisionStatus string `json:"provision_status"`
+	Running         int    `json:"running"`
+	Desired         int    `json:"desired"`
+	Tags            string `json:"tags"`
+	MinNodes        int    `json:"min_nodes"`
+	MaxNodes        int    `json:"max_nodes"`
+	CustomerID      int    `json:"customer_id"`
+	PlanID          int    `json:"plan_id"`
+	ImageID         int    `json:"image_id"`
+	VPCNames        string `json:"vpc_names"`
+	ElasticPolicy   struct {
 		Type                 string `json:"type"`
 		Policy               string `json:"policy"`
 		PolicyMeasure        string `json:"policy_measure"`
@@ -145,37 +145,32 @@ type ScalerGroupGetDetail struct {
 	UpscaleAdjust           int              `json:"upscale_adjust"`
 	DownscaleRecurrence     string           `json:"downscale_recurrence"`
 	DownscaleAdjust         int              `json:"downscale_adjust"`
-	
 }
 
 type DeleteScalerGroupResponse struct {
 	Code    int               `json:"code"`
 	Message string            `json:"message"`
 	Errors  map[string]string `json:"errors"`
-	Data    map[string]any    `json:"data"` // Empty map
+	Data    map[string]any    `json:"data"`
 }
 
-
-
 type SavedImage struct {
-	Name              string `json:"name"`
-	ImageID           string `json:"image_id"`
-	TemplateID        int    `json:"template_id"`
-	Distro            string `json:"distro"`
-	SKUType           string `json:"sku_type"`
-	OSDistribution    string `json:"os_distribution"`
-	NodePlansAvailable bool  `json:"node_plans_available"`
-	AutoScaleTemplate  bool  `json:"auto_scale_template"`
+	Name               string `json:"name"`
+	ImageID            string `json:"image_id"`
+	TemplateID         int    `json:"template_id"`
+	Distro             string `json:"distro"`
+	SKUType            string `json:"sku_type"`
+	OSDistribution     string `json:"os_distribution"`
+	NodePlansAvailable bool   `json:"node_plans_available"`
+	AutoScaleTemplate  bool   `json:"auto_scale_template"`
 }
 
 type ListSavedImagesResponse struct {
-	Code    int           `json:"code"`
-	Data    []SavedImage  `json:"data"`
-	Message string        `json:"message"`
+	Code    int                    `json:"code"`
+	Data    []SavedImage           `json:"data"`
+	Message string                 `json:"message"`
 	Errors  map[string]interface{} `json:"errors"`
 }
-
-
 
 type ScalerSecurityGroup struct {
 	ID        int  `json:"id"`
@@ -183,34 +178,29 @@ type ScalerSecurityGroup struct {
 }
 
 type GetScalerSecurityGroupsResponse struct {
-	Code    int                  `json:"code"`
+	Code    int                   `json:"code"`
 	Data    []ScalerSecurityGroup `json:"data"`
-	Message string               `json:"message"`
+	Message string                `json:"message"`
 }
 
-
 type UpdateScalerGroupRequest struct {
-	Name            string              `json:"name"`
-	PlanID 			string 				`json:"plan_id"`
-	MinNodes        int                 `json:"min_nodes"`
-	MaxNodes        int                 `json:"max_nodes"`
-	PolicyType      string              `json:"policy_type"`
-	Policy          []ElasticPolicy     `json:"policy"`
-	ScheduledPolicy []ScheduledPolicy   `json:"scheduled_policy"`
+	Name            string            `json:"name"`
+	PlanID          string            `json:"plan_id"`
+	MinNodes        int               `json:"min_nodes"`
+	MaxNodes        int               `json:"max_nodes"`
+	PolicyType      string            `json:"policy_type"`
+	Policy          []ElasticPolicy   `json:"policy"`
+	ScheduledPolicy []ScheduledPolicy `json:"scheduled_policy"`
 }
 
 type UpdateDesiredNodeCountRequest struct {
 	Cardinality int `json:"cardinality"`
 }
 
-
-
-// AttachVPCRequest represents the payload to attach a VPC
 type AttachVPCRequest struct {
 	VPCID string `json:"vpc_id"`
 }
 
-// AttachVPCResponse represents the API response for VPC attach
 type AttachVPCResponse struct {
 	Code    int               `json:"code"`
 	Data    string            `json:"data"`
@@ -218,7 +208,6 @@ type AttachVPCResponse struct {
 	Message string            `json:"message"`
 }
 
-// DetachVPCResponse represents the API response for VPC detach
 type DetachVPCResponse struct {
 	Code    int               `json:"code"`
 	Data    string            `json:"data"`
@@ -226,24 +215,26 @@ type DetachVPCResponse struct {
 	Message string            `json:"message"`
 }
 
-
 type PublicIPStatusResponse struct {
-	Code    int                      `json:"code"`
-	Data    PublicIPStatusData       `json:"data"`
-	Errors  map[string]interface{}   `json:"errors"`
-	Message string                   `json:"message"`
+	Code    int                    `json:"code"`
+	Data    PublicIPStatusData     `json:"data"`
+	Errors  map[string]interface{} `json:"errors"`
+	Message string                 `json:"message"`
 }
 
 type PublicIPStatusData struct {
 	IsPublicIPRequired bool `json:"is_public_ip_required"`
 }
 
-
-
-
 type PublicIPActionResponse struct {
 	Code    int                    `json:"code"`
 	Data    string                 `json:"data"`
 	Errors  map[string]interface{} `json:"errors"`
 	Message string                 `json:"message"`
+}
+
+type VPCPartial struct {
+	Name      string `json:"name"`
+	NetworkID int    `json:"network_id"`
+	IPv4CIDR  string `json:"ipv4_cidr"`
 }

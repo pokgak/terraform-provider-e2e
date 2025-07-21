@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	
+	"strconv"
 
 	"net/http"
 
@@ -200,6 +200,7 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 	log.Printf("[ERROR] No saved image found with name: %s", imageName)
 	return nil, fmt.Errorf("no saved image found with name: %s", imageName)
 }
+
 func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, error) {
 	url := c.Api_endpoint + "security_group/"
 	log.Printf("[INFO] Sending request to fetch default Security Group at: %s", url)
@@ -286,9 +287,9 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 		Code int `json:"code"`
 		Data []struct {
 			Name  string `json:"name"` // UI plan name, e.g., "C3.8GB"
-			Plan  string `json:"plan"` // slug name
+			Plan  string `json:"plan"` 
 			Specs struct {
-				ID string `json:"id"` // plan_id / sku_id
+				ID string `json:"id"` 
 			} `json:"specs"`
 		} `json:"data"`
 	}
@@ -353,72 +354,73 @@ func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupReque
 }
 
 func (c *Client) UpdateDesiredNodeCount(scalerGroupID int, desired int, projectID, location string) error {
-	url := c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/", scalerGroupID)
-	log.Printf("[INFO] Sending request to update desired node count for Scaler Group at: %s", url)
+	url := c.Api_endpoint + "/scaler/scalegroups/" + strconv.Itoa(scalerGroupID) + "/"
+	log.Printf("[INFO] Sending request to update desired node count to %d for Scaler Group ID=%d", desired, scalerGroupID)
 
 	payload := &models.UpdateDesiredNodeCountRequest{Cardinality: desired}
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
 		log.Printf("[ERROR] Failed to encode update payload: %v", err)
-		return fmt.Errorf("failed to encode update payload: %v", err)
+		return fmt.Errorf("failed to encode update payload: %w", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
-		return fmt.Errorf("failed to create PUT request: %v", err)
+		log.Printf("[ERROR] Failed to create PUT request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %w", err)
 	}
-	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
 
-	log.Printf("[DEBUG] UpdateDesiredNodeCount headers: %v", httpReq.Header)
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+	log.Printf("[DEBUG] Request URL: %s", httpReq.URL.String())
+	log.Printf("[DEBUG] Request headers: %v", httpReq.Header)
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
 		log.Printf("[ERROR] HTTP request failed: %v", err)
-		return fmt.Errorf("HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("[ERROR] Failed to read response body: %v", err)
-		return fmt.Errorf("failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusNoContent {
-		log.Printf("[ERROR] UpdateDesiredNodeCount failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
-		return fmt.Errorf("update desired node count failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+		log.Printf("[ERROR] UpdateDesiredNodeCount failed: status=%d, body=%s", resp.StatusCode, string(bodyBytes))
+		return fmt.Errorf("update desired node count failed: status=%d, body=%s", resp.StatusCode, string(bodyBytes))
 	}
 
-	log.Printf("[INFO] Desired node count updated successfully for Scaler Group ID=%d to %d", scalerGroupID, desired)
+	log.Printf("[INFO] Successfully updated desired node count to %d for Scaler Group ID=%d", desired, scalerGroupID)
 	return nil
 }
 
 func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location string) error {
 	var url string
+	idStr := strconv.Itoa(id)
+
 	switch status {
 	case "Stopped":
-		url = c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/stop/", id)
+		url = c.Api_endpoint + "/scaler/scalegroups/" + idStr + "/stop/"
 	case "Running":
-		url = c.Api_endpoint + fmt.Sprintf("/scaler/scalegroups/%d/start/", id)
+		url = c.Api_endpoint + "/scaler/scalegroups/" + idStr + "/start/"
 	default:
 		return fmt.Errorf("unsupported status value: %s", status)
 	}
 
 	log.Printf("[INFO] Sending request to update scaler group status to: %s at: %s", status, url)
 
-	// Empty JSON payload
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(struct{}{}); err != nil {
 		log.Printf("[ERROR] Failed to encode status update payload: %v", err)
-		return fmt.Errorf("failed to encode status update payload: %v", err)
+		return fmt.Errorf("failed to encode status update payload: %w", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
 		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
-		return fmt.Errorf("failed to create PUT request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %w", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
 
@@ -427,14 +429,14 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
 		log.Printf("[ERROR] HTTP request failed: %v", err)
-		return fmt.Errorf("HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("[ERROR] Failed to read response body: %v", err)
-		return fmt.Errorf("failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -447,17 +449,17 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 	return nil
 }
 
-func (c *Client) GetVpcDetailsByName( projectID, location string, name string) (*models.VPCDetail, error) {
-	url := fmt.Sprintf("%s/vpc/list/?page_no=1&per_page=100", c.Api_endpoint)
+func (c *Client) GetVpcDetailsByName(projectID, location, name string) (*models.VPCDetail, error) {
+	url := c.Api_endpoint + "/vpc/list/?page_no=1&per_page=100"
+
 	log.Printf("[INFO] Getting VPC details for name %q, projectID: %s, location: %s", name, projectID, location)
-	log.Printf("[DEBUG] VPC request URL: %s", url) 
+	log.Printf("[DEBUG] VPC request URL: %s", url)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("[ERROR] Failed to create VPC request: %v", err)
 		return nil, fmt.Errorf("failed to create VPC request: %v", err)
 	}
-
 	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
 
 	resp, err := c.HttpClient.Do(req)
@@ -474,14 +476,14 @@ func (c *Client) GetVpcDetailsByName( projectID, location string, name string) (
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] VPC request returned status %d: %s", resp.StatusCode, string(body))
+		log.Printf("[ERROR] VPC request returned status %d", resp.StatusCode)
+		log.Printf("[ERROR] Response body: %s", string(body))
 		return nil, fmt.Errorf("VPC request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
 		Data []models.VPCDetail `json:"data"`
 	}
-
 	if err := json.Unmarshal(body, &result); err != nil {
 		log.Printf("[ERROR] Failed to unmarshal VPC response: %v", err)
 		return nil, fmt.Errorf("failed to parse VPC response: %v", err)
@@ -534,7 +536,6 @@ func (c *Client) AttachVPCToScalerGroup(scalerGroupID string, vpcs []models.VPCD
 	return nil
 }
 
-
 func (c *Client) DetachVPCFromScalerGroup(scalerGroupID, vpcID, projectID, location string) error {
 	url := c.Api_endpoint + "/scaler/scalegroups/" + scalerGroupID + "/vpc/action/"
 	log.Printf("[INFO] Detaching VPC %s from Scaler Group %s", vpcID, scalerGroupID)
@@ -564,7 +565,6 @@ func (c *Client) DetachVPCFromScalerGroup(scalerGroupID, vpcID, projectID, locat
 	log.Printf("[INFO] Successfully detached VPC %s from Scaler Group %s", vpcID, scalerGroupID)
 	return nil
 }
-
 
 func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*models.PublicIPStatusData, error) {
 	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
@@ -609,7 +609,6 @@ func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*m
 	return &result.Data, nil
 }
 
-
 func (c *Client) AttachPublicIP(scaleGroupID, projectID, location string) (*models.PublicIPActionResponse, error) {
 	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
 	log.Printf("[INFO] Attaching Public IP to Scaler Group ID: %s", scaleGroupID)
@@ -649,8 +648,6 @@ func (c *Client) AttachPublicIP(scaleGroupID, projectID, location string) (*mode
 	log.Printf("[INFO] Public IP attached: %s", result.Data)
 	return &result, nil
 }
-
-
 
 func (c *Client) DetachPublicIP(scaleGroupID, projectID, location string) (*models.PublicIPActionResponse, error) {
 	url := c.Api_endpoint + "/scaler/scalegroups/" + scaleGroupID + "/public_ip/action/"
@@ -692,3 +689,139 @@ func (c *Client) DetachPublicIP(scaleGroupID, projectID, location string) (*mode
 	return &result, nil
 }
 
+func (c *Client) GetAttachedVPCsForScalerGroup(scalerGroupID, projectID, location string) ([]models.VPCPartial, error) {
+	log.Printf("[INFO] Fetching attached VPCs for Scaler Group ID: %s", scalerGroupID)
+
+	url := c.Api_endpoint + "/scaler/scalegroups/" + scalerGroupID + "/vpc/action/"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create request: %v", err)
+		return nil, err
+	}
+
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		log.Printf("[ERROR] API call failed: %v", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response: %v", err)
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] Unexpected status code %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []models.VPCPartial `json:"data"`
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		log.Printf("[ERROR] Failed to unmarshal response: %v", err)
+		return nil, err
+	}
+
+	log.Printf("[INFO] Successfully fetched %d attached VPC(s) for scaler group %s", len(result.Data), scalerGroupID)
+	return result.Data, nil
+}
+
+func (c *Client) DetachSecurityGroupFromScalergroup(scalerGroupID string, sgID int, projectID, location string) error {
+	url := c.Api_endpoint + "/scaler/scalegroups/security_groups/" + scalerGroupID + "/"
+	log.Printf("[INFO] Detaching Security Group %d from Scaler Group %s", sgID, scalerGroupID)
+
+	httpReq, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request for DetachSecurityGroup: %v", err)
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+	q := httpReq.URL.Query()
+	q.Add("security_group_id", strconv.Itoa(sgID))
+	httpReq.URL.RawQuery = q.Encode()
+
+	log.Printf("[DEBUG] DetachSecurityGroup request URL: %s", httpReq.URL.String())
+	log.Printf("[DEBUG] DetachSecurityGroup headers: %v", httpReq.Header)
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed for DetachSecurityGroup: %v", err)
+		return fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+	
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body in DetachSecurityGroup: %v", err)
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	log.Printf("[DEBUG] DetachSecurityGroup response code: %d", resp.StatusCode)
+	log.Printf("[DEBUG] DetachSecurityGroup response body: %s", string(bodyBytes))
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		log.Printf("[ERROR] DetachSecurityGroup failed: status %d", resp.StatusCode)
+		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
+		return fmt.Errorf("detach security group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Successfully detached Security Group %d from Scaler Group %s", sgID, scalerGroupID)
+	return nil
+}
+
+func (c *Client) AddSecurityGroupToScalergroup(scalerGroupID string, sgID int, projectID, location string) error {
+	url := c.Api_endpoint + "/scaler/scalegroups/security_groups/" + scalerGroupID + "/"
+	log.Printf("[INFO] Attaching Security Group %d to Scaler Group %s", sgID, scalerGroupID)
+
+	payload := map[string]int{"security_group_id": sgID}
+	payloadBuf := new(bytes.Buffer)
+	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
+		log.Printf("[ERROR] Failed to encode attach payload: %v", err)
+		return fmt.Errorf("failed to encode attach payload: %v", err)
+	}
+
+	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
+	if err != nil {
+		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
+		return fmt.Errorf("failed to create PUT request: %v", err)
+	}
+
+	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
+
+	log.Printf("[DEBUG] AttachSecurityGroup request URL: %s", httpReq.URL.String())
+	log.Printf("[DEBUG] AttachSecurityGroup headers: %v", httpReq.Header)
+	log.Printf("[DEBUG] AttachSecurityGroup payload: %s", payloadBuf.String())
+
+	resp, err := c.HttpClient.Do(httpReq)
+	if err != nil {
+		log.Printf("[ERROR] HTTP request failed: %v", err)
+		return fmt.Errorf("HTTP request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read response body: %v", err)
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	log.Printf("[DEBUG] AttachSecurityGroup response code: %d", resp.StatusCode)
+	log.Printf("[DEBUG] AttachSecurityGroup response body: %s", string(bodyBytes))
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[ERROR] AttachSecurityGroup failed: status %d", resp.StatusCode)
+		return fmt.Errorf("attach security group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	log.Printf("[INFO] Security Group %d attached successfully to Scaler Group %s", sgID, scalerGroupID)
+	return nil
+}
