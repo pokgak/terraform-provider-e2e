@@ -11,14 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	//"time"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
-
-	// "github.com/hashicorp/terraform-plugin-log"
-	// "github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -56,7 +51,8 @@ func ResourceSfs() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "size of disk to be created",
+				Description: "ID of the E2E Cloud project",
+
 			},
 			"disk_iops":{
 				Type:       schema.TypeInt,
@@ -67,7 +63,6 @@ func ResourceSfs() *schema.Resource {
 			"status":{
 				Type:       schema.TypeString,
 				Computed:   true,
-				Optional:   true,
 				Description:  "status will be updated after creation",
 			},
 			"region": {
@@ -77,6 +72,20 @@ func ResourceSfs() *schema.Resource {
 				Description: "Location where node is to be launched",
 				Default:     "Delhi",
 			},
+
+			"encryption_passphrase": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+				Default  : "",
+				Description: "Passphrase for encryption, if encryption is enabled. This field is optional and should only be set if `is_encryption_enabled` is true.",
+			},
+			"is_encryption_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 		
 		},
 		CreateContext: resourceCreateSfs,
@@ -112,13 +121,18 @@ func resourceCreateSfs(ctx context.Context, d *schema.ResourceData, m interface{
 
 	log.Printf("[INFO] NODE CREATE STARTS ")
 	node := models.SfsCreate{
-		Name:              d.Get("name").(string),
-		Plan:              d.Get("plan").(string),
-		Vpc_id:            d.Get("vpc_id").(string),
-		Disk_size:         d.Get("disk_size").(int),
-		Disk_iops:         d.Get("disk_iops").(int),
-		
+		Name:                d.Get("name").(string),
+		Plan:                d.Get("plan").(string),
+		Vpc_id:              d.Get("vpc_id").(string),
+		Disk_size:           d.Get("disk_size").(int),
+		Disk_iops:           d.Get("disk_iops").(int),
+		IsEncryptionEnabled: d.Get("is_encryption_enabled").(bool),
 	}
+	
+	if pass, ok := d.GetOk("encryption_passphrase"); ok {
+		node.EncryptionPassphrase = pass.(string)
+	}
+	
 	project_id:=d.Get("project_id").(string)
 	location:=d.Get("region").(string)
 	res_Sfs, err := apiClient.NewSfs(&node, project_id, location)
@@ -147,33 +161,53 @@ func resourceCreateSfs(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 func resourceReadSfs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
-	apiClient := m.(*client.Client)
-	var diags diag.Diagnostics
-	log.Printf("[info] inside node Resource read")
-	Sfs_id := d.Id()
-	project_id:=d.Get("project_id").(string)
-	location:=d.Get("region").(string)
-	Sfs, err := apiClient.GetSfs(Sfs_id, project_id, location)
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			d.SetId("")
-		} else {
-			return diag.Errorf("error finding Item with ID %s", Sfs_id)
-
+		apiClient := m.(*client.Client)
+		var diags diag.Diagnostics
+	
+		log.Printf("[INFO] Inside SFS Resource Read")
+		Sfs_id := d.Id()
+		project_id := d.Get("project_id").(string)
+		location := d.Get("region").(string)
+	
+		resp, err := apiClient.GetSfs(Sfs_id, project_id, location)
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				d.SetId("")
+			} else {
+				return diag.Errorf("error finding SFS with ID %s: %s", Sfs_id, err)
+			}
+			return diags
 		}
-	}
-	log.Printf("[info] node Resource read | before setting data")
-	data := Sfs["data"].(map[string]interface{})
-	d.Set("name", data["name"].(string))
-	log.Printf("[info] node Resource read | after setting data")
-	if d.Get("status").(string) == "Available" {
-		d.Set("status", "power_on")
+	
+		data := resp["data"].(map[string]interface{})
+	
+		
+		d.Set("name", data["name"])
+		d.Set("status", data["status"])
+		d.Set("is_encryption_enabled", data["isEncryptionEnabled"])
+	
+		
+		if v, ok := data["disk_iops"].(float64); ok {
+			d.Set("disk_iops", int(v))
+		}
+		if v, ok := data["vpc_id"].(float64); ok {
+			d.Set("vpc_id", strconv.Itoa(int(v)))
+		}
+		if v, ok := data["efs_disk_size"].(string); ok {
+			
+			diskSizeStr := strings.TrimSpace(strings.ReplaceAll(v, "GB", ""))
+			if sizeInt, err := strconv.Atoi(diskSizeStr); err == nil {
+				d.Set("disk_size", sizeInt)
+			}
+		}
+		if v, ok := data["plan_name"].(string); ok {
+			d.Set("plan", v)
+		}
+	
+		return diags
 	}
 	
-	return diags
-
-}
+	
 
 func resourceDeleteSfs(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiClient := m.(*client.Client)

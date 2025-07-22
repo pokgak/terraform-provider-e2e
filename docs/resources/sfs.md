@@ -3,13 +3,14 @@
 page_title: "e2e_sfs Resource - terraform-provider-e2e"
 subcategory: ""
 description: |-
+  Provides an E2E SFS (Scalable File System) resource. This service delivers on-demand, scalable, and high-performance shared file systems for Elastic Cloud Servers.
   
 ---
 
 # e2e_sfs (Resource)
-Provides an e2e node resource. provides an on-demand, scalable, and high-performance shared file system for Elastic Cloud Servers.
+Provides an e2e sfs resource. provides an on-demand, scalable, and high-performance shared file system for Elastic Cloud Servers.
 
-# Example uses
+## Example usage
 ```hcl
  resource "e2e_sfs" "sfs1" {
     name   = "sfs-999"
@@ -18,7 +19,9 @@ Provides an e2e node resource. provides an on-demand, scalable, and high-perform
     disk_size = 5
     project_id = "12345"  # Replace with your actual project ID
     disk_iops = 75
-    region = "Delhi"
+    region = "Delhi"     # Optional
+    is_encryption_enabled  = true      # Optional
+    encryption_passphrase  = "my-secret-passphrase"  # optional ,only set if is_encryption_enabled=true
  }
  ```
 
@@ -40,11 +43,13 @@ Provides an e2e node resource. provides an on-demand, scalable, and high-perform
 
 ### Optional
 
-- `region` (String) Location where node is to be launched
-- `status` (String) status will be updated after creation
+- `region` (String) Location where node is to be launched.Defaults to "Delhi"
+- `is_encryption_enabled` (Boolean) Whether encryption is enabled for the SFS. Defaults to false.
+- `encryption_passphrase` (String, Sensitive) Passphrase for encryption. Required only if is_encryption_enabled is true.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
+- `status`(String) Current status of the SFS instance.
 
 
