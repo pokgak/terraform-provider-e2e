@@ -19,13 +19,11 @@ func (c *Client) CreateScalerGroup(req *models.CreateScalerGroupRequest, project
 
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(req); err != nil {
-		log.Printf("[ERROR] Failed to encode create payload: %v", err)
 		return nil, fmt.Errorf("failed to encode create payload: %v", err)
 	}
 
 	httpReq, err := http.NewRequest("POST", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
 		return nil, fmt.Errorf("failed to create POST request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
@@ -34,26 +32,21 @@ func (c *Client) CreateScalerGroup(req *models.CreateScalerGroupRequest, project
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		log.Printf("[ERROR] CreateScalerGroup failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("create scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.CreateScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[ERROR] Failed to decode response JSON: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode create response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -69,7 +62,6 @@ func (c *Client) GetScalerGroup(scaleGroupID, projectID, location string) (*mode
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create GET request: %v", err)
 		return nil, fmt.Errorf("failed to create GET request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
@@ -78,26 +70,22 @@ func (c *Client) GetScalerGroup(scaleGroupID, projectID, location string) (*mode
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] GetScalerGroup failed: status %d", resp.StatusCode)
 		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("get scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.GetScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[ERROR] Failed to decode get response: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode get response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -113,7 +101,6 @@ func (c *Client) DeleteScalerGroup(scaleGroupID, projectID, location string) err
 
 	httpReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create DELETE request: %v", err)
 		return fmt.Errorf("failed to create DELETE request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
@@ -122,26 +109,22 @@ func (c *Client) DeleteScalerGroup(scaleGroupID, projectID, location string) err
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read delete response body: %v", err)
 		return fmt.Errorf("failed to read delete response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		log.Printf("[ERROR] DeleteScalerGroup failed: status %d", resp.StatusCode)
 		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return fmt.Errorf("delete scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.DeleteScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[ERROR] Failed to decode delete response: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return fmt.Errorf("failed to decode delete response: %v", err)
 	}
@@ -156,7 +139,6 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create GET request: %v", err)
 		return nil, fmt.Errorf("failed to create GET request: %v", err)
 	}
 
@@ -173,19 +155,15 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] GetSavedImageByName failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("get saved image failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.ListSavedImagesResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[ERROR] Failed to decode saved-images response: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode saved-images response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -196,8 +174,6 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 			return &img, nil
 		}
 	}
-
-	log.Printf("[ERROR] No saved image found with name: %s", imageName)
 	return nil, fmt.Errorf("no saved image found with name: %s", imageName)
 }
 
@@ -207,7 +183,6 @@ func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, err
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create GET request: %v", err)
 		return 0, fmt.Errorf("failed to create GET request: %v", err)
 	}
 
@@ -216,26 +191,21 @@ func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, err
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return 0, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return 0, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] GetDefaultSecurityGroupID failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return 0, fmt.Errorf("get default security group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.GetScalerSecurityGroupsResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[ERROR] Failed to decode response JSON: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return 0, fmt.Errorf("failed to decode security group response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -246,8 +216,6 @@ func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, err
 			return sg.ID, nil
 		}
 	}
-
-	log.Printf("[ERROR] No default security group found in response")
 	return 0, fmt.Errorf("default security group not found")
 }
 
@@ -257,7 +225,6 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create GET request: %v", err)
 		return "", "", fmt.Errorf("failed to create GET request: %v", err)
 	}
 
@@ -273,13 +240,10 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return "", "", fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] GetPlanDetailsFromPlanName failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return "", "", fmt.Errorf("get plan details failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -287,15 +251,14 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 		Code int `json:"code"`
 		Data []struct {
 			Name  string `json:"name"` // UI plan name, e.g., "C3.8GB"
-			Plan  string `json:"plan"` 
+			Plan  string `json:"plan"`
 			Specs struct {
-				ID string `json:"id"` 
+				ID string `json:"id"`
 			} `json:"specs"`
 		} `json:"data"`
 	}
 
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[ERROR] Failed to decode plan details response: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return "", "", fmt.Errorf("failed to decode plan details response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -306,8 +269,6 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 			return item.Specs.ID, item.Plan, nil
 		}
 	}
-
-	log.Printf("[ERROR] No matching plan found for planName: %s", planName)
 	return "", "", fmt.Errorf("plan name %s not found in template %d", planName, templateID)
 }
 
@@ -317,13 +278,11 @@ func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupReque
 
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(req); err != nil {
-		log.Printf("[ERROR] Failed to encode update payload: %v", err)
 		return fmt.Errorf("failed to encode update payload: %v", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
 		return fmt.Errorf("failed to create PUT request: %v", err)
 	}
 
@@ -332,20 +291,16 @@ func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupReque
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] UpdateScalerGroup failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return fmt.Errorf("update scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -360,13 +315,11 @@ func (c *Client) UpdateDesiredNodeCount(scalerGroupID int, desired int, projectI
 	payload := &models.UpdateDesiredNodeCountRequest{Cardinality: desired}
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
-		log.Printf("[ERROR] Failed to encode update payload: %v", err)
 		return fmt.Errorf("failed to encode update payload: %w", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create PUT request: %v", err)
 		return fmt.Errorf("failed to create PUT request: %w", err)
 	}
 
@@ -376,19 +329,16 @@ func (c *Client) UpdateDesiredNodeCount(scalerGroupID int, desired int, projectI
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusNoContent {
-		log.Printf("[ERROR] UpdateDesiredNodeCount failed: status=%d, body=%s", resp.StatusCode, string(bodyBytes))
 		return fmt.Errorf("update desired node count failed: status=%d, body=%s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -413,13 +363,11 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(struct{}{}); err != nil {
-		log.Printf("[ERROR] Failed to encode status update payload: %v", err)
 		return fmt.Errorf("failed to encode status update payload: %w", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
 		return fmt.Errorf("failed to create PUT request: %w", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
@@ -435,13 +383,10 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] UpdateScalerGroupStatus failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return fmt.Errorf("update scaler group status to %s failed: status %d\nresponse: %s", status, resp.StatusCode, string(bodyBytes))
 	}
 
@@ -457,27 +402,22 @@ func (c *Client) GetVpcDetailsByName(projectID, location, name string) (*models.
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create VPC request: %v", err)
 		return nil, fmt.Errorf("failed to create VPC request: %v", err)
 	}
 	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID, location)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		log.Printf("[ERROR] VPC request failed: %v", err)
 		return nil, fmt.Errorf("VPC request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read VPC response body: %v", err)
 		return nil, fmt.Errorf("failed to read VPC response: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] VPC request returned status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(body))
 		return nil, fmt.Errorf("VPC request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -485,7 +425,6 @@ func (c *Client) GetVpcDetailsByName(projectID, location, name string) (*models.
 		Data []models.VPCDetail `json:"data"`
 	}
 	if err := json.Unmarshal(body, &result); err != nil {
-		log.Printf("[ERROR] Failed to unmarshal VPC response: %v", err)
 		return nil, fmt.Errorf("failed to parse VPC response: %v", err)
 	}
 
@@ -572,7 +511,6 @@ func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*m
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create GET request: %v", err)
 		return nil, fmt.Errorf("failed to create GET request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
@@ -588,19 +526,16 @@ func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*m
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] GetPublicIPStatus failed: status %d", resp.StatusCode)
 		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("get public IP status failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.PublicIPStatusResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[ERROR] Failed to decode public IP status response: %v", err)
 		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode public IP status response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
@@ -615,33 +550,28 @@ func (c *Client) AttachPublicIP(scaleGroupID, projectID, location string) (*mode
 
 	httpReq, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create PUT request: %v", err)
 		return nil, fmt.Errorf("failed to create PUT request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] AttachPublicIP failed: status %d", resp.StatusCode)
 		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("attach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.PublicIPActionResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[ERROR] Failed to decode response: %v", err)
 		return nil, fmt.Errorf("failed to decode attach public IP response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -655,33 +585,28 @@ func (c *Client) DetachPublicIP(scaleGroupID, projectID, location string) (*mode
 
 	httpReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create DELETE request: %v", err)
 		return nil, fmt.Errorf("failed to create DELETE request: %v", err)
 	}
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] DetachPublicIP failed: status %d", resp.StatusCode)
 		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("detach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.PublicIPActionResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[ERROR] Failed to decode response: %v", err)
 		return nil, fmt.Errorf("failed to decode detach public IP response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -716,7 +641,6 @@ func (c *Client) GetAttachedVPCsForScalerGroup(scalerGroupID, projectID, locatio
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] Unexpected status code %d: %s", resp.StatusCode, string(body))
 		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -726,7 +650,6 @@ func (c *Client) GetAttachedVPCsForScalerGroup(scalerGroupID, projectID, locatio
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		log.Printf("[ERROR] Failed to unmarshal response: %v", err)
 		return nil, err
 	}
 
@@ -740,10 +663,9 @@ func (c *Client) DetachSecurityGroupFromScalergroup(scalerGroupID string, sgID i
 
 	httpReq, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request for DetachSecurityGroup: %v", err)
 		return fmt.Errorf("failed to create request: %v", err)
 	}
-	
+
 	httpReq = addParamsAndHeaders(httpReq, c.Api_key, c.Auth_token, projectID, location)
 	q := httpReq.URL.Query()
 	q.Add("security_group_id", strconv.Itoa(sgID))
@@ -754,14 +676,12 @@ func (c *Client) DetachSecurityGroupFromScalergroup(scalerGroupID string, sgID i
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed for DetachSecurityGroup: %v", err)
 		return fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
-	
+
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body in DetachSecurityGroup: %v", err)
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
 
@@ -769,8 +689,6 @@ func (c *Client) DetachSecurityGroupFromScalergroup(scalerGroupID string, sgID i
 	log.Printf("[DEBUG] DetachSecurityGroup response body: %s", string(bodyBytes))
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		log.Printf("[ERROR] DetachSecurityGroup failed: status %d", resp.StatusCode)
-		log.Printf("[ERROR] Response body: %s", string(bodyBytes))
 		return fmt.Errorf("detach security group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -785,13 +703,11 @@ func (c *Client) AddSecurityGroupToScalergroup(scalerGroupID string, sgID int, p
 	payload := map[string]int{"security_group_id": sgID}
 	payloadBuf := new(bytes.Buffer)
 	if err := json.NewEncoder(payloadBuf).Encode(payload); err != nil {
-		log.Printf("[ERROR] Failed to encode attach payload: %v", err)
 		return fmt.Errorf("failed to encode attach payload: %v", err)
 	}
 
 	httpReq, err := http.NewRequest("PUT", url, payloadBuf)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create HTTP request: %v", err)
 		return fmt.Errorf("failed to create PUT request: %v", err)
 	}
 
@@ -803,14 +719,12 @@ func (c *Client) AddSecurityGroupToScalergroup(scalerGroupID string, sgID int, p
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read response body: %v", err)
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
 
@@ -818,7 +732,6 @@ func (c *Client) AddSecurityGroupToScalergroup(scalerGroupID string, sgID int, p
 	log.Printf("[DEBUG] AttachSecurityGroup response body: %s", string(bodyBytes))
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[ERROR] AttachSecurityGroup failed: status %d", resp.StatusCode)
 		return fmt.Errorf("attach security group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
