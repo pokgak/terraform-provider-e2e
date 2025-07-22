@@ -13,6 +13,7 @@ import (
 
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -77,12 +78,14 @@ func ResourceSfs() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+				ForceNew:    true,
 				Default  : "",
 				Description: "Passphrase for encryption, if encryption is enabled. This field is optional and should only be set if `is_encryption_enabled` is true.",
 			},
 			"is_encryption_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew:    true,
 				Default:  false,
 			},
 
@@ -92,7 +95,7 @@ func ResourceSfs() *schema.Resource {
 		ReadContext:   resourceReadSfs,
 		DeleteContext: resourceDeleteSfs,
 		Importer: &schema.ResourceImporter{
-				State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 			},
 }
 }
@@ -216,7 +219,7 @@ func resourceDeleteSfs(ctx context.Context, d *schema.ResourceData, m interface{
 	project_id:=d.Get("project_id").(string)
 	node_status := d.Get("status").(string)
 	if node_status == "Creating" {
-		return diag.Errorf("Node in %s state", node_status)
+		return diag.Errorf("Sfs in %s state", node_status)
 	}
 	location:=d.Get("region").(string)
 	err := apiClient.DeleteSFs(Sfs_id, project_id, location)

@@ -9,6 +9,7 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceContainerRegistry() *schema.Resource {
@@ -55,7 +56,7 @@ func ResourceContainerRegistry() *schema.Resource {
 		DeleteContext: resourceDeleteContainerRegistry,
 		UpdateContext: resourceUpdateContainerRegistry,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }

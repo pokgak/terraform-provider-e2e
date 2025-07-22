@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourcePostgresDBaaS() *schema.Resource {
@@ -171,7 +172,7 @@ func ResourcePostgresDBaaS() *schema.Resource {
 		DeleteContext: resourceDeletePostgress,
 		UpdateContext: resourceUpdatePostgress,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }
