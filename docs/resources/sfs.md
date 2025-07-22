@@ -13,7 +13,7 @@ Provides an e2e node resource. provides an on-demand, scalable, and high-perform
 ```hcl
  resource "e2e_sfs" "sfs1" {
     name   = "sfs-999"
-    plan   = "5GB"
+    plan   = "5 GB"
     vpc_id = "143"
     disk_size = 5
     project_id = "12345"  # Replace with your actual project ID
