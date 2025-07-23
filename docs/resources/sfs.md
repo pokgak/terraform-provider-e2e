@@ -15,7 +15,7 @@ Provides an e2e sfs resource. provides an on-demand, scalable, and high-performa
  resource "e2e_sfs" "sfs1" {
     name   = "sfs-999"
     plan   = "500 GB"
-    vpc_id = "143"
+    vpc_id = "12345"  # Replace with your actual vpc ID 
     disk_size = 500
     project_id = "12345"  # Replace with your actual project ID
     disk_iops = 7500
