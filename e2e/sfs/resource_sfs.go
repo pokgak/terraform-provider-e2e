@@ -193,9 +193,10 @@ func resourceReadSfs(ctx context.Context, d *schema.ResourceData, m interface{})
 		if v, ok := data["disk_iops"].(float64); ok {
 			d.Set("disk_iops", int(v))
 		}
-		if v, ok := data["vpc_id"].(float64); ok {
-			d.Set("vpc_id", strconv.Itoa(int(v)))
+		if v, ok := data["vpc_id"].(string); ok {
+			d.Set("vpc_id", v)
 		}
+		
 		if v, ok := data["efs_disk_size"].(string); ok {
 			
 			diskSizeStr := strings.TrimSpace(strings.ReplaceAll(v, "GB", ""))
