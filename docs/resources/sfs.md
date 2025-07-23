@@ -14,11 +14,11 @@ Provides an e2e sfs resource. provides an on-demand, scalable, and high-performa
 ```hcl
  resource "e2e_sfs" "sfs1" {
     name   = "sfs-999"
-    plan   = "5 GB"
+    plan   = "500 GB"
     vpc_id = "143"
-    disk_size = 5
+    disk_size = 500
     project_id = "12345"  # Replace with your actual project ID
-    disk_iops = 75
+    disk_iops = 7500
     region = "Delhi"     # Optional
     is_encryption_enabled  = true      # Optional
     encryption_passphrase  = "my-secret-passphrase"  # optional ,only set if is_encryption_enabled=true
