@@ -274,7 +274,6 @@ func resourceCreateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 
 	savedImage, err := apiClient.GetSavedImageByName(imageName, projectID, location)
 	if err != nil {
-		log.Printf("[ERROR] Failed to fetch saved image details: %v", err)
 		return diag.FromErr(fmt.Errorf("failed to fetch saved image details for '%s': %v", imageName, err))
 	}
 
@@ -294,7 +293,6 @@ func resourceCreateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 	} else {
 		sgID, err = apiClient.GetDefaultSecurityGroupID(projectID, location)
 		if err != nil {
-			log.Printf("[ERROR] Failed to fetch default Security Group ID: %v", err)
 			return diag.FromErr(fmt.Errorf("failed to fetch default security group ID: %v", err))
 		}
 		log.Printf("[INFO] Using default Security Group ID from API: %d", sgID)
@@ -317,7 +315,6 @@ func resourceCreateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 
 	resp, err := apiClient.CreateScalerGroup(req, projectID, location)
 	if err != nil {
-		log.Printf("[ERROR] Failed to create ScalerGroup: %v", err)
 		return diag.FromErr(fmt.Errorf("failed to create scaler group: %v", err))
 	}
 
@@ -337,7 +334,6 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 
 	group, err := apiClient.GetScalerGroup(id, projectID, location)
 	if err != nil {
-		log.Printf("[ERROR] Failed to read ScalerGroup: %v", err)
 		return diag.FromErr(fmt.Errorf("failed to read scaler group: %v", err))
 	}
 
@@ -396,7 +392,6 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("failed to set provision_status: %v", err))
 	}
 
-	
 	var fetchedVPCs []map[string]interface{}
 
 	attachedVPCs, err := apiClient.GetAttachedVPCsForScalerGroup(id, projectID, location)
@@ -439,7 +434,6 @@ func resourceReadScalerGroup(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(fmt.Errorf("failed to set vpc details: %v", err))
 	}
 
-	
 	if templateID, ok := d.Get("vm_template_id").(int); ok && templateID > 0 {
 		_, slugName, err := apiClient.GetPlanDetailsFromPlanName(templateID, group.PlanName, projectID, location)
 		if err == nil {
@@ -469,7 +463,6 @@ func resourceDeleteScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 	id := d.Id()
 
 	if err := apiClient.DeleteScalerGroup(id, projectID, location); err != nil {
-		log.Printf("[ERROR] Failed to delete ScalerGroup: %v", err)
 		return diag.FromErr(fmt.Errorf("failed to delete scaler group: %v", err))
 	}
 
@@ -492,7 +485,6 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		return nil, fmt.Errorf("failed to fetch plan details: %v", err)
 	}
 
-	
 	var elasticPolicies []models.ElasticPolicy
 	if v, ok := d.GetOk("policy"); ok {
 		for _, p := range v.([]interface{}) {
@@ -510,7 +502,6 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		}
 	}
 
-	
 	var schedPolicies []models.ScheduledPolicy
 	if v, ok := d.GetOk("scheduled_policy"); ok {
 		for _, s := range v.([]interface{}) {
@@ -523,7 +514,6 @@ func expandCreateScalerGroupRequest(d *schema.ResourceData, client *client.Clien
 		}
 	}
 
-	
 	var vpcDetails []models.VPCDetail
 	if v, ok := d.GetOk("vpc"); ok {
 		for _, vRaw := range v.([]interface{}) {
@@ -585,7 +575,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 	location := d.Get("location").(string)
 	id := d.Id()
 
-	
 	if d.HasChange("provision_status") {
 		oldStatus, newStatus := d.GetChange("provision_status")
 		log.Printf("[INFO] Changing provision_status from %s → %s", oldStatus, newStatus)
@@ -643,7 +632,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			return diag.Errorf("At least one security group must be attached to the scaler group")
 		}
 
-		
 		oldStr := intSliceToStringSlice(oldList)
 		newStr := intSliceToStringSlice(newList)
 
@@ -668,7 +656,7 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	if d.HasChange("vpc") {
-		
+
 		group, err := apiClient.GetScalerGroup(d.Id(), projectID, location)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("failed to fetch scaler group status for update: %w", err))
@@ -677,7 +665,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			return diag.Errorf("VPCs can only be attached or detached when the scaler group is in 'stopped' state. Current state: %q", group.ProvisionStatus)
 		}
 
-		
 		oldRaw, newRaw := d.GetChange("vpc")
 		oldList := extractVpcNames(oldRaw.([]interface{}))
 		newList := extractVpcNames(newRaw.([]interface{}))
@@ -685,7 +672,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 		toAttach := difference(newList, oldList)
 		toDetach := difference(oldList, newList)
 
-		
 		for _, vpcName := range toAttach {
 			vpcDetails, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
 			if err != nil {
@@ -697,7 +683,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			}
 		}
 
-		
 		for _, vpcName := range toDetach {
 			vpcDetails, err := apiClient.GetVpcDetailsByName(projectID, location, vpcName)
 			if err != nil {
@@ -709,7 +694,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			}
 		}
 
-		
 		vpcNames := extractVpcNames(d.Get("vpc").([]interface{}))
 		vpcStateList := []map[string]interface{}{}
 
@@ -753,7 +737,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 			return diag.Errorf("ScalerGroup must be in 'Stopped' state to attach/detach public IP")
 		}
 
-		
 		vpcsRaw, ok := d.GetOk("vpc")
 		if !ok || len(vpcsRaw.([]interface{})) == 0 {
 			return diag.Errorf("At least one VPC must be attached to attach/detach public IP")
@@ -774,13 +757,11 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 		}
 	}
 
-
 	if !(d.HasChange("min_nodes") || d.HasChange("max_nodes") || d.HasChange("policy_type") || d.HasChange("policy") || d.HasChange("scheduled_policy")) {
 		log.Println("[INFO] No relevant changes detected, skipping update.")
 		return nil
 	}
 
-	
 	policies := []models.ElasticPolicy{}
 	for _, p := range d.Get("policy").([]interface{}) {
 		pMap := p.(map[string]interface{})
@@ -806,7 +787,6 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 		})
 	}
 
-	
 	req := &models.UpdateScalerGroupRequest{
 		Name:            d.Get("name").(string),
 		PlanID:          d.Get("plan_id").(string),
@@ -866,4 +846,3 @@ func intSliceToStringSlice(in []int) []string {
 	}
 	return result
 }
-

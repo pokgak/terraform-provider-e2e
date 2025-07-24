@@ -47,7 +47,6 @@ func (c *Client) CreateScalerGroup(req *models.CreateScalerGroupRequest, project
 
 	var response models.CreateScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode create response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -80,13 +79,11 @@ func (c *Client) GetScalerGroup(scaleGroupID, projectID, location string) (*mode
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("get scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.GetScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode get response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -119,13 +116,11 @@ func (c *Client) DeleteScalerGroup(scaleGroupID, projectID, location string) err
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return fmt.Errorf("delete scaler group failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var response models.DeleteScalerGroupResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return fmt.Errorf("failed to decode delete response: %v", err)
 	}
 
@@ -148,7 +143,6 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
@@ -164,7 +158,6 @@ func (c *Client) GetSavedImageByName(imageName, projectID, location string) (*mo
 
 	var result models.ListSavedImagesResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode saved-images response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -206,7 +199,6 @@ func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, err
 
 	var response models.GetScalerSecurityGroupsResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return 0, fmt.Errorf("failed to decode security group response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -233,7 +225,6 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return "", "", fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
@@ -259,7 +250,6 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 	}
 
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return "", "", fmt.Errorf("failed to decode plan details response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -376,7 +366,6 @@ func (c *Client) UpdateScalerGroupStatus(id int, status, projectID, location str
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
@@ -435,8 +424,6 @@ func (c *Client) GetVpcDetailsByName(projectID, location, name string) (*models.
 			return &vpc, nil
 		}
 	}
-
-	log.Printf("[WARN] No VPC found with name %q", name)
 	return nil, fmt.Errorf("no VPC found with name %q", name)
 }
 
@@ -519,7 +506,6 @@ func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*m
 
 	resp, err := c.HttpClient.Do(httpReq)
 	if err != nil {
-		log.Printf("[ERROR] HTTP request failed: %v", err)
 		return nil, fmt.Errorf("HTTP request failed: %v", err)
 	}
 	defer resp.Body.Close()
@@ -530,13 +516,11 @@ func (c *Client) GetPublicIPStatus(scaleGroupID, projectID, location string) (*m
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("get public IP status failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	var result models.PublicIPStatusResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
-		log.Printf("[DEBUG] Raw body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("failed to decode public IP status response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
@@ -566,7 +550,6 @@ func (c *Client) AttachPublicIP(scaleGroupID, projectID, location string) (*mode
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("attach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -601,7 +584,6 @@ func (c *Client) DetachPublicIP(scaleGroupID, projectID, location string) (*mode
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[DEBUG] Response body: %s", string(bodyBytes))
 		return nil, fmt.Errorf("detach public IP failed: status %d\nresponse: %s", resp.StatusCode, string(bodyBytes))
 	}
 
