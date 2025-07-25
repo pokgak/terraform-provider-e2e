@@ -24,7 +24,7 @@ resource "e2e_scaler_group" "example" {
   name                  = "my-scaler-group"
   plan_name             = "C3.8GB"        # Enter your desired plan name here
   vm_image_name         = "C3-8GB-142-19_1752475189_1752475189"    # Enter  your own saved image name  here
-  is_encryption_enabled = false           # Optional ,default is false
+  is_encryption_enabled = false           
   encryption_passphrase = ""              # optional ,only enter if is_encryption_enabled is true
   is_public_ip_required = true            # optional,default is true
 
