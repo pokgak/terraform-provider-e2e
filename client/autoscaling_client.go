@@ -213,7 +213,7 @@ func (c *Client) GetDefaultSecurityGroupID(projectID, location string) (int, err
 
 func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID, location string) (string, string, error) {
 	url := c.Api_endpoint + fmt.Sprintf("/images/upgradeimage/%d/", templateID)
-	log.Printf("[INFO] Sending request to fetch plan details for planName=%s, templateID=%d", planName, templateID)
+	log.Printf("[INFO] Sending request to fetch plan details for planName=%s, templateID=%d at: %s", planName, templateID, url)
 
 	httpReq, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -240,12 +240,14 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 
 	var result struct {
 		Code int `json:"code"`
-		Data []struct {
-			Name  string `json:"name"` // UI plan name, e.g., "C3.8GB"
-			Plan  string `json:"plan"`
-			Specs struct {
-				ID string `json:"id"`
-			} `json:"specs"`
+		Data struct {
+			Data []struct {
+				Name  string `json:"name"`
+				Plan  string `json:"plan"`
+				Specs struct {
+					ID string `json:"id"`
+				} `json:"specs"`
+			} `json:"data"`
 		} `json:"data"`
 	}
 
@@ -253,14 +255,16 @@ func (c *Client) GetPlanDetailsFromPlanName(templateID int, planName, projectID,
 		return "", "", fmt.Errorf("failed to decode plan details response: %v\nresponse body: %s", err, string(bodyBytes))
 	}
 
-	for _, item := range result.Data {
+	for _, item := range result.Data.Data {
 		if item.Name == planName {
 			log.Printf("[INFO] Found plan: PlanID=%s, SlugName=%s", item.Specs.ID, item.Plan)
 			return item.Specs.ID, item.Plan, nil
 		}
 	}
+
 	return "", "", fmt.Errorf("plan name %s not found in template %d", planName, templateID)
 }
+
 
 func (c *Client) UpdateScalerGroup(id string, req *models.UpdateScalerGroupRequest, projectID, location string) error {
 	url := c.Api_endpoint + "/scaler/scalegroups/update/" + id + "/"
