@@ -19,47 +19,68 @@ This resource allows you to provision and manage scalable compute node groups (s
 
 ```hcl
 resource "e2e_scaler_group" "example" {
-  project_id            = "your-project-id"
-  location              = "us-west-1"
+  project_id            = "12345"         # Enter your project id here
+  location              = "Delhi"
   name                  = "my-scaler-group"
-  plan_name             = "c3.medium"
-  vm_image_name         = "ubuntu_2204"
-  is_encryption_enabled = false
-  encryption_passphrase = ""
-  is_public_ip_required = true
+  plan_name             = "C3.8GB"        # Enter your desired plan name here
+  vm_image_name         = "C3-8GB-142-19_1752475189_1752475189"    # Enter  your own saved image name  here
+  is_encryption_enabled = false           # Optional ,default is false
+  encryption_passphrase = ""              # optional ,only enter if is_encryption_enabled is true
+  is_public_ip_required = true            # optional,default is true
 
-  min_nodes             = 2
-  max_nodes             = 5
-  desired               = 3
-  policy_type           = "elastic"
-
-  policy = [{
-    type           = "cpu_usage"
-    adjust         = 1
-    parameter      = "cpu"
-    operator       = ">"
-    value          = "75"
-    period_number  = "3"
-    period_seconds = "60"
-    cooldown       = "300"
-  }]
-
-  scheduled_policy = [{
-    type       = "schedule"
-    adjust     = "2"
-    recurrence = "0 2 * * *"
-  }]
 
    vpc {
-    name = "my-vpc"
+    name = "my-vpc"                      # Optional,enter your vpc name at time of creation or updation,enter  active vpc name like VPC-455.separate nested blocks for each vpc
   }
 
   vpc {
     name = "my-vpc-2"
   }
 
+  min_nodes             = 2
+  max_nodes             = 5
+  desired               = 3
+  policy_type           = "Default"
 
-  security_group_ids = [101, 102]
+
+  policy {
+    type           = "CHANGE"
+    adjust         = 1
+    parameter      = "CPU"
+    operator       = ">"
+    value          = "60"
+    period_number  = "3"
+    period_seconds = "10"
+    cooldown       = "150"
+  }
+
+  policy {
+    type           = "CHANGE"
+    adjust         = -1
+    parameter      = "CPU"
+    operator       = "<"
+    value          = "30"
+    period_number  = "3"
+    period_seconds = "10"
+    cooldown       = "150"
+  }
+
+   scheduled_policy {
+    type       = "CARDINALITY"
+    adjust     = "4"
+    recurrence = "0 12 * * *"
+  }
+
+  scheduled_policy {
+    type       = "CARDINALITY"
+    adjust     = "2"
+    recurrence = "0 2 * * *"
+  }
+
+
+
+
+  security_group_ids = [101, 102]  #Optional, Use this to update security groups,not at time of creation
 }
 ```
 
