@@ -152,7 +152,11 @@ resource "e2e_scaler_group" "example" {
 - Changes to `is_public_ip_required` can only be applied when the scaler group is `"Stopped"` and at least one VPC is attached.
 - Use `provision_status` to start or stop the scaler group (`"Running"` or `"Stopped"`).
 - Enter either two blocks of `policy` for elastic policy scale up and scale down,or two blocks of `scheduled policy` for scheduled policy scale up and scale down,or two blocks  of both depending upon requirement.
-- while creating elastic policy or elastic and scheduled policy specify policy_type= "Default",otherwise skip that field for scheduled policy
+- while creating elastic policy or elastic and scheduled policy specify `policy_type`= `"Default"`,otherwise skip that field for scheduled policy
+
+
+
+
 ---
 
 
