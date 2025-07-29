@@ -42,9 +42,9 @@ type CreateScalerGroupRequest struct {
 	MinNodes             string            `json:"min_nodes"`
 	MaxNodes             string            `json:"max_nodes"`
 	Desired              string            `json:"desired"`
-	PolicyType           string            `json:"policy_type"`
-	Policy               []ElasticPolicy   `json:"policy"`
-	ScheduledPolicy      []ScheduledPolicy `json:"scheduled_policy"`
+	PolicyType           string            `json:"policy_type,omitempty"`
+	Policy               []ElasticPolicy   `json:"policy,omitempty"`
+	ScheduledPolicy      []ScheduledPolicy `json:"scheduled_policy,omitempty"`
 	VPC                  []VPCDetail       `json:"vpc,omitempty"`
 }
 

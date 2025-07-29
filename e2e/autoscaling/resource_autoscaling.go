@@ -151,7 +151,8 @@ func ResourceScalerGroup() *schema.Resource {
 			},
 			"policy_type": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				
 			},
 			"vpc": {
 				Type:     schema.TypeList,
@@ -210,7 +211,7 @@ func ResourceScalerGroup() *schema.Resource {
 
 			"policy": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -227,7 +228,7 @@ func ResourceScalerGroup() *schema.Resource {
 			},
 			"scheduled_policy": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
