@@ -147,12 +147,10 @@ func ResourceScalerGroup() *schema.Resource {
 			"desired": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
 			},
 			"policy_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				
 			},
 			"vpc": {
 				Type:     schema.TypeList,
