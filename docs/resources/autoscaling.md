@@ -87,7 +87,7 @@ resource "e2e_scaler_group" "example" {
 - `project_id` (String) Your E2E Cloud project ID.
 - `location` (String) Data center location for the scaler group.
 - `name` (String) Name of the scaler group.
-- `plan_name` (String) Plan/instance type name (e.g., `"c3.medium"`).
+- `plan_name` (String) Plan/instance type name (e.g., `"C3.8GB"`).
 - `vm_image_name` (String) Name of the VM image for nodes.
 - `is_encryption_enabled` (Boolean) Enable encryption on nodes.
 - `min_nodes` (Int) Minimum number of nodes in the scaler group.
