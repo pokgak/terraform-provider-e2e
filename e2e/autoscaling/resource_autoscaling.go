@@ -786,12 +786,16 @@ func resourceUpdateScalerGroup(ctx context.Context, d *schema.ResourceData, m in
 		})
 	}
 
+	var policyType string
+	if len(policies) > 0 {
+		policyType = d.Get("policy_type").(string)
+	}
 	req := &models.UpdateScalerGroupRequest{
 		Name:            d.Get("name").(string),
 		PlanID:          d.Get("plan_id").(string),
 		MinNodes:        minNodes,
 		MaxNodes:        maxNodes,
-		PolicyType:      d.Get("policy_type").(string),
+		PolicyType:      policyType, // empty string if no elastic policies
 		Policy:          policies,
 		ScheduledPolicy: schedPolicies,
 	}

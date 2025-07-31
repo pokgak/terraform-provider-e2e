@@ -188,7 +188,8 @@ type UpdateScalerGroupRequest struct {
 	PlanID          string            `json:"plan_id"`
 	MinNodes        int               `json:"min_nodes"`
 	MaxNodes        int               `json:"max_nodes"`
-	PolicyType      string            `json:"policy_type"`
+	PolicyType      string            `json:"policy_type,omitempty"`
+
 	Policy          []ElasticPolicy   `json:"policy"`
 	ScheduledPolicy []ScheduledPolicy `json:"scheduled_policy"`
 }
