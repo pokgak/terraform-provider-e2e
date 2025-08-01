@@ -101,7 +101,7 @@ resource "e2e_scaler_group" "example" {
 - `is_public_ip_required` (Boolean, default: true) Whether nodes should have public IPs.
 -  `vpc` (Set of nested blocks) One or more VPC blocks to attach by name.
 - `security_group_ids` (List of Int) Security Group IDs attached; supports updates post-creation.
-- `policy_type` (String) Scaling policy type (e.g., `"Default"`).Enter this as Default while creating  elastic policy .omit this field if only entering scheduled policy
+- `policy_type` (String) Scaling policy type (e.g., `"Default"`).Enter this as Default while creating  elastic policy .
 - `provision_status` (String, default `"Running"`) Scaler group state: `"Running"` or `"Stopped"`.
 - `policy` (List of Object) Elastic scaling policies controlling scaling behavior.Enter two blocks ,one for scale up and one for scale down at designated time.
 - `scheduled_policy` (List of Object) Scheduled scaling policies using cron.Enter two blocks ,one for scale up and one for scale down at designated time.
@@ -152,7 +152,7 @@ resource "e2e_scaler_group" "example" {
 - Changes to `is_public_ip_required` can only be applied when the scaler group is `"Stopped"` and at least one VPC is attached.
 - Use `provision_status` to start or stop the scaler group (`"Running"` or `"Stopped"`).
 - Enter either two blocks of `policy` for elastic policy scale up and scale down,or two blocks of `scheduled policy` for scheduled policy scale up and scale down,or two blocks  of both depending upon requirement.
-- while creating elastic policy or (elastic and scheduled policy) specify `policy_type`= `"Default"`,otherwise skip that field for scheduled policy
+
 
 
 
