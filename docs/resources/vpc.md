@@ -18,7 +18,8 @@ This resource allows you to manage vpc on your e2e clusters. When applied, a new
     vpc_name            = "vpc_name"
     location            = "Delhi"
     project_id          = "12345"            # Replace with your actual project ID
-    ipv4                = "192.168.1.0/24"   # Replace this with IPv4 CIDR block you want to add
+    is_e2e_vpc          = false              # Optional, set false for custom vpc
+    ipv4                = "192.168.1.0/24"   # Optional ,replace this with ipv4 cidr block you want to add
  }
 ```
 ## Schema
