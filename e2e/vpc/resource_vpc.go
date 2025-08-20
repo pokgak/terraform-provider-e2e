@@ -40,11 +40,6 @@ func ResouceVpc() *schema.Resource {
 				ForceNew:    true,
 				Description: "ID of the project. It should be unique",
 			},
-			"network_size": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  512,
-			},
 			"network_id": {
 				Type:        schema.TypeFloat,
 				Computed:    true,
@@ -66,6 +61,12 @@ func ResouceVpc() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"is_e2e_vpc": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "true for provider-managed VPC (send ipv4 as empty string), false for custom VPC (ipv4 must be a CIDR).",
+			},
 			"gateway_ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -76,7 +77,8 @@ func ResouceVpc() *schema.Resource {
 			},
 			"ipv4": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:    "",
 				Description: "IPv4 CIDR block of the VPC",
 			},
 		},
@@ -117,9 +119,9 @@ func ResourceCreateVpc(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("[INFO] Inside vpcs  resource | create ")
 
 	newvpc := models.VpcCreate{
-		VpcName:     d.Get("vpc_name").(string),
-		NetworkSize: d.Get("network_size").(int),
-		IPv4:        d.Get("ipv4").(string),
+		IsE2EVpc: d.Get("is_e2e_vpc").(bool),
+		VpcName:  d.Get("vpc_name").(string),
+		IPv4:     d.Get("ipv4").(string),
 	}
 	resvpc, err := apiClient.CreateVpc(d.Get("location").(string), &newvpc, d.Get("project_id").(string))
 	if err != nil {
