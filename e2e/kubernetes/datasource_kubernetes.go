@@ -9,7 +9,6 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func DataSourceKubernetesService() *schema.Resource {
@@ -48,11 +47,7 @@ func DataSourceKubernetesService() *schema.Resource {
 				Optional: true,
 				// ForceNew:    true,
 				Description: "Location of the block storage",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Delhi",
-					"Mumbai",
-				}, false),
-				Default: "Delhi",
+				Default:     "Delhi",
 			},
 			"created_at": {
 				Type:        schema.TypeString,

@@ -36,12 +36,7 @@ func ResourceKubernetesService() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Location of the block storage",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Delhi",
-					"Mumbai",
-					"Delhi-NCR-2",
-				}, false),
-				Default: "Delhi",
+				Default:     "Delhi",
 			},
 			"slug_name": {
 				Type:        schema.TypeString,
