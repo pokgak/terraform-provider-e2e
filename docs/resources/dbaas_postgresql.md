@@ -23,7 +23,7 @@ resource "e2e_dbaas_postgresql" "db1" {
     dbaas_number = 1
   }
 
-  vpcs = [e2e_vpc.VPC-TS-01.id]
+  vpc_list = [e2e_vpc.VPC-TS-01.id]
 }
 
 resource "e2e_vpc" "VPC-TS-01" {
