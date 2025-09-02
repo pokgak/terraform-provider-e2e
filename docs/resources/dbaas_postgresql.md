@@ -23,14 +23,9 @@ resource "e2e_dbaas_postgresql" "db1" {
     dbaas_number = 1
   }
 
-  vpc_list = [e2e_vpc.VPC-TS-01.id]
+  vpc_list = []
 }
 
-resource "e2e_vpc" "VPC-TS-01" {
-  location    = "Delhi"
-  vpc_name    = "VPC-TS-01"
-  project_id  = "your_project_id"
-}
 ```
 
 ---

@@ -29,14 +29,9 @@ resource "e2e_dbaas_mysql" "db1" {
     name     = "mydb"
   }
 
-  vpcs = [e2e_vpc.VPC-TS-01.id]  # Optional, add VPC ID(s) only if you want to attach vpc
+  vpcs = []  # Optional, add VPC ID(s) only if you want to attach vpc
 }
 
-resource "e2e_vpc" "VPC-TS-01" {
-  location    = "Delhi"
-  vpc_name    = "VPC-TS-01"
-  project_id  = 12345   # Replace with your actual project ID
-}
 ```
 
 ## Schema

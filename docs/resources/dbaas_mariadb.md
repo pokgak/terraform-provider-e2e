@@ -37,14 +37,10 @@ resource "e2e_dbaas_mariadb" "example" {
     dbaas_number  = 1
   }
 
-  vpcs = [e2e_vpc.vpc1.id]
+  vpcs = []
 }
 
-resource "e2e_vpc" "vpc1" {
-  vpc_name    = "my-vpc"
-  location    = "Delhi"
-  project_id  = "your-project-id"
-}
+
 ```
 
 ## Schema
