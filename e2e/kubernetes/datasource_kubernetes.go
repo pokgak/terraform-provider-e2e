@@ -43,11 +43,9 @@ func DataSourceKubernetesService() *schema.Resource {
 				Description: "ID of the project. It should be unique",
 			},
 			"location": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// ForceNew:    true,
+				Type:        schema.TypeString,
+				Required:    true,
 				Description: "Location of the block storage",
-				Default:     "Delhi",
 			},
 			"created_at": {
 				Type:        schema.TypeString,

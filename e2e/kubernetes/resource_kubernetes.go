@@ -34,9 +34,8 @@ func ResourceKubernetesService() *schema.Resource {
 			},
 			"location": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Location of the block storage",
-				Default:     "Delhi",
 			},
 			"slug_name": {
 				Type:        schema.TypeString,
