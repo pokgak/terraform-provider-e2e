@@ -18,6 +18,8 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/ssh_key"
 	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/vpc"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/autoscaling"
+	
 )
 
 func Provider() *schema.Provider {
@@ -60,6 +62,7 @@ func Provider() *schema.Provider {
 			"e2e_dbaas_mysql":        dbaas_mysql.ResourceMySql(),
 			"e2e_dbaas_mariadb":      dbaas_mariadb.ResourceMariaDB(),
 			"e2e_container_registry": container_registry.ResourceContainerRegistry(),
+			"e2e_scaler_group":       autoscaling.ResourceScalerGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"e2e_node":               node.DataSourceNode(),
@@ -78,6 +81,7 @@ func Provider() *schema.Provider {
 			"e2e_dbaas_mysql":        dbaas_mysql.DataSourceMySQLDBaaS(),
 			"e2e_dbaas_mariadb":      dbaas_mariadb.DataSourceMariaDB(),
 			"e2e_container_registry": container_registry.DataSourceContainerRegistry(),
+			"e2e_scaler_group":       autoscaling.DataSourceScalerGroup(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
