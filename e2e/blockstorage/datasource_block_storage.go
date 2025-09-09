@@ -7,7 +7,6 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func DataSourceBlockStorage() *schema.Resource {
@@ -46,14 +45,10 @@ func DataSourceBlockStorage() *schema.Resource {
 			},
 			"location": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				ForceNew:    true,
 				Description: "Location of the block storage",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Delhi",
-					"Mumbai",
-				}, false),
-				Default: "Delhi",
+				
 			},
 			// "created_on": {
 			// 	Type:        schema.TypeString,

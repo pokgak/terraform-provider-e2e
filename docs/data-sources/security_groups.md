@@ -26,7 +26,7 @@ description: |-
 
 ### Optional
 
-- `location` (String) Location of the block storage
+- `location` (String) Location of the security group
 
 ### Read-Only
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceKubernetesService() *schema.Resource {
@@ -34,14 +35,9 @@ func ResourceKubernetesService() *schema.Resource {
 			},
 			"location": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Location of the block storage",
-				ValidateFunc: validation.StringInSlice([]string{
-					"Delhi",
-					"Mumbai",
-					"Delhi-NCR-2",
-				}, false),
-				Default: "Delhi",
+				
 			},
 			"slug_name": {
 				Type:        schema.TypeString,
@@ -301,7 +297,7 @@ func ResourceKubernetesService() *schema.Resource {
 		DeleteContext: resourceDeleteKubernetesService,
 		Exists:        resourceExistsKubernetesService,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }
