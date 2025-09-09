@@ -37,7 +37,7 @@ resource "e2e_dbaas_mariadb" "example" {
     dbaas_number  = 1
   }
 
-  vpcs = [e2e_vpc.vpc1.id] Optional ,add VPC ID(s) only if you want to attach vpc
+  vpcs = [e2e_vpc.vpc1.id] # Optional ,add VPC ID(s) only if you want to attach vpc
 }
 
 resource "e2e_vpc" "vpc1" {
