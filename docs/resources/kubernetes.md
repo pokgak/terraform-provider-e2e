@@ -98,9 +98,6 @@ description: |-
 - `project_id` (Number) ID of the project. It should be unique. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `version` (String) Version of the Kubernetes service.
 - `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
-
-### Optional
-
 - `location` (String) Location of the block storage
 
 ### Read-Only

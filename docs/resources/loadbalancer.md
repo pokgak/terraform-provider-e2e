@@ -70,6 +70,7 @@ resource "e2e_vpc" "VPC-TS-01" {
 - `project_id` (String) This is your project ID in which you want to create the resource. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 -   Either `Backend` or `Tcp Backend` is required. Details are mentioned below.
 -   `NOTE` - ACl list and ACL map are not allowed with TCP backend. 
+-   `location` (String) This is the region of your loadbalancer
 ### Optional
 
 - `acl_list` (Block List) This will give the acl rule which you want to apply (see [below for nested schema](#nestedblock--acl_list))
@@ -80,7 +81,6 @@ resource "e2e_vpc" "VPC-TS-01" {
 - `is_ipv6_attached` (Boolean) This is used to attach IPV6 on your load balancer
 - `lb_reserve_ip` (String) This field is for any reserve IP which is going to attach on load balancer
 - `lb_type` (String) It is used to define internal or extenal load balancer
-- `location` (String) This is the region of your loadbalancer
 - `node_list_type` (String) It is used to find out either node is static(S) or dynamic autoscaling(D)
 - `power_status` (String) power_on to start the load balancer and power_off to power off the load balancer
 - `tcp_backend` (Block List) Need Information of TCP backend If user wants to attach (see [below for nested schema](#nestedblock--tcp_backend))
