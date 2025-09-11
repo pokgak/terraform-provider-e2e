@@ -388,8 +388,7 @@ func ResouceLoadBalancerSchema() map[string]*schema.Schema {
 		},
 		"location": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "Delhi",
+			Required:   true,
 			Description: "This is the region of your loadbalancer",
 			ForceNew:    true,
 		},
