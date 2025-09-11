@@ -88,7 +88,8 @@ func ResourceMySql() *schema.Resource {
 			},
 			"db_location": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Default:     "Delhi",
 				Description: "This is the location of your db",
 				ForceNew:    true,
 			},
