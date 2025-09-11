@@ -215,7 +215,6 @@ func ResourceNode() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Location where you want to create node.(ex - Delhi, Chennai)",
-				
 			},
 			"vm_id": {
 				Type:        schema.TypeInt,
