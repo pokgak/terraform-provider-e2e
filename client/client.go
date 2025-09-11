@@ -645,7 +645,7 @@ func (c *Client) GetImage(imageId string, project_id string) (*models.ImageRespo
 	return &res, nil
 
 }
-func (c *Client) DeleteImage(imageId string, project_id string) error {
+func (c *Client) DeleteImage(imageId string, projectID string,location string) error {
 	urlNode := c.Api_endpoint + "images/" + imageId + "/"
 	deleteBody := models.ImageDeleteBody{
 		Action_type: "delete_image",
@@ -656,12 +656,7 @@ func (c *Client) DeleteImage(imageId string, project_id string) error {
 	if err != nil {
 		return err
 	}
-
-	params := req.URL.Query()
-	params.Add("apikey", c.Api_key)
-	params.Add("project_id", project_id)
-	req.URL.RawQuery = params.Encode()
-	SetBasicHeaders(c.Auth_token, req)
+	req = addParamsAndHeaders(req, c.Api_key, c.Auth_token, projectID , location)
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
 		return err

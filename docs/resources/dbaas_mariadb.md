@@ -32,7 +32,7 @@ resource "e2e_dbaas_mariadb" "example" {
 
   database {
     user          = "admin"
-    password      = "securepassword"
+    password      = "SecurePassword@12345678"
     name          = "mydb"
     dbaas_number  = 1
   }

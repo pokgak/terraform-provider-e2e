@@ -18,7 +18,7 @@ This resource allows you to manage nodes on your e2e clusters. When applied, a n
 	name               = "node_name"
     location           = "Delhi"
     plan               = "C3.8GB"
-    image              = "CentOS-7"
+    image              = "CentOS-Stream"
     project_id         = <project_id:string>
     security_group_ids = [10001, 10002, 10018] //Just an example
     start_script       =  file("pathToTheFile") // example - file("./config/test.sh"),
