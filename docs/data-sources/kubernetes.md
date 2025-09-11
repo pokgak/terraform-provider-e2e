@@ -19,9 +19,6 @@ description: |-
 
 - `project_id` (Number) ID of the project. It should be unique
 - `service_id` (String) Service ID of the Kubernetes Cluster. It must be unique.
-
-### Optional
-
 - `location` (String) Location of the block storage
 
 ### Read-Only

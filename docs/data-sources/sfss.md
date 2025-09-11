@@ -31,9 +31,6 @@ output "sfs_list_name" {
 ### Required
 
 - `project_id` (String) project_id is mandatory
-
-### Optional
-
 - `region` (String) Region should specified
 
 ### Read-Only

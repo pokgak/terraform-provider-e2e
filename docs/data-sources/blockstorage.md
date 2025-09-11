@@ -25,9 +25,6 @@ description: |-
 
 - `block_id` (String) ID of the node to be specified to read that particular node
 - `project_id` (Number) ID of the project. 
-
-### Optional
-
 - `location` (String) Location of the block storage
 
 ### Read-Only
