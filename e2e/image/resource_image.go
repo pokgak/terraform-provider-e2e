@@ -184,10 +184,8 @@ func resourceDeleteImage(ctx context.Context, d *schema.ResourceData, m interfac
 	var diags diag.Diagnostics
 	log.Printf("[INFO] DELETE IMAGE")
 	imageId := d.Id()
-	projectID := d.Get("project_id").(string)
-	location := d.Get("location").(string)
 
-	err := apiClient.DeleteImage(imageId, projectID, location)
+	err := apiClient.DeleteImage(imageId, d.Get("project_id").(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
