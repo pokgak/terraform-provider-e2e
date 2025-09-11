@@ -71,7 +71,6 @@ func ResourceSfs() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				Description: "Location where sfs is to be launched",
-				Default:     "Delhi",
 			},
 
 			"encryption_passphrase": {
