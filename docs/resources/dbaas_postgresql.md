@@ -12,7 +12,7 @@ Applying this resource creates a new PostgreSQL DBaaS instance. Destroying it re
 resource "e2e_dbaas_postgresql" "db1" {
   location     = "Delhi"
   project_id   = 12345
-  plan         = "DBS.16GB"
+  plan         = "DBS.32GB"
   version      = "15.0"
   name         = "mydbname"
 
