@@ -12,6 +12,7 @@ import (
 	"github.com/e2eterraformprovider/terraform-provider-e2e/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceObjectStore() *schema.Resource {
@@ -30,9 +31,8 @@ func ResourceObjectStore() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The Region the bucket will be created",
-				Default:     "Delhi",
 			},
 			"status": {
 				Type:     schema.TypeString,
@@ -65,7 +65,7 @@ func ResourceObjectStore() *schema.Resource {
 		UpdateContext: resourceUpdateBucket,
 		DeleteContext: resourceDeleteBucket,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }

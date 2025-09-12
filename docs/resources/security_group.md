@@ -47,10 +47,10 @@ resource "e2e_security_groups" "web_sg" {
 * **`name`** (String): Name of the security group.
 * **`project_id`** (String): The project ID associated with the security group.
 * **`rules`** (List of Rule Blocks): A list of rule blocks defining firewall rules.
+* **`location`** (String): The region in which to create the security group. 
 
 ### Optional Attributes
 
-* **`location`** (String): The region in which to create the security group. Defaults to `"Delhi"`.
 * **`description`** (String): Description of the security group.
 * **`default`** (Boolean): Whether this group is the default group. Defaults to `false`.
 

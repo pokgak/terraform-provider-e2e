@@ -21,6 +21,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceReserveIP() *schema.Resource {
@@ -34,8 +35,7 @@ func ResourceReserveIP() *schema.Resource {
 			},
 			"location": {
 				Type:     schema.TypeString,
-				Default:  "Delhi",
-				Optional: true,
+				Required: true,
 			},
 			"ip_address": {
 				Type:        schema.TypeString,
@@ -89,7 +89,7 @@ func ResourceReserveIP() *schema.Resource {
 		DeleteContext: resourceDeleteReserveIP,
 		UpdateContext: resourceUpdateReserveIP,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: node.CustomImportStateFunc,
 		},
 	}
 }

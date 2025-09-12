@@ -19,7 +19,7 @@ Provides an e2e sfs resource. provides an on-demand, scalable, and high-performa
     disk_size = 500
     project_id = "12345"  # Replace with your actual project ID
     disk_iops = 7500
-    region = "Delhi"     # Optional
+    region = "Delhi"     
     is_encryption_enabled  = true      # Optional
     encryption_passphrase  = "my-secret-passphrase"  # optional ,only set if is_encryption_enabled=true
  }
@@ -40,10 +40,10 @@ Provides an e2e sfs resource. provides an on-demand, scalable, and high-performa
 - `plan` (String) Details  of the Plan. To find the plan name, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/efs-plans/get)
 - `project_id` (String) project id associated with the sfs. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `vpc_id` (String) virtual private cloud id of sfs. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
+- `region` (String) Location where node is to be launched.Default is "Delhi"
 
 ### Optional
 
-- `region` (String) Location where node is to be launched.Defaults to "Delhi"
 - `is_encryption_enabled` (Boolean) Whether encryption is enabled for the SFS. Defaults to false.
 - `encryption_passphrase` (String, Sensitive) Passphrase for encryption. Required only if is_encryption_enabled is true.
 

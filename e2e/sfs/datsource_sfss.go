@@ -27,7 +27,7 @@ func DataSourceSfs() *schema.Resource {
      Schema: map[string]*schema.Schema{
          "region": {
              Type:        schema.TypeString,
-             Optional:    true,
+             Required:    true,
              Description: "Region should specified",
          },
          "project_id":{

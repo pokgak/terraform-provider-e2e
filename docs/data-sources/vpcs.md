@@ -23,7 +23,7 @@ description: |-
 ## Schema
 
 ### Argument Reference
-- `region` (String)  Region to list the vpcs  (available locations: Delhi, Mumbai)
+- `region` (String)  Region to list the vpcs  (available locations: Delhi,Chennai, Mumbai)
 - `project_id` (String)  ID of the associated project.
 
 ### Attribute Reference (Read Only)

@@ -28,11 +28,11 @@ Provides an e2e object-store resource. This resource allows you to manage object
 
 - `name` (String) The name of the bucket, also act as it's unique ID.
 - `project_id` (Number) The My-Account Project where the bucket will be created. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
+- `region` (String) The Region the bucket will be created
 
 ### Optional
 
 - `enabling_versioning` (Boolean) Enable versioning for this bucket.
-- `region` (String) The Region the bucket will be created
 
 ### Read-Only
 

@@ -27,9 +27,6 @@ This resource allows you to manage reserved ip on your e2e clusters. When applie
 ### Required
 
 - `project_id` (String) specify the project id in which the reserve ip is to be created. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
-
-### Optional
-
 - `location` (String) Location where node is to be launched (ex- "Delhi", "Mumbai")
 
 ### Read-Only

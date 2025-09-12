@@ -68,10 +68,9 @@ func ResourceSfs() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				ForceNew:    true,
-				Description: "Location where node is to be launched",
-				Default:     "Delhi",
+				Description: "Location where sfs is to be launched",
 			},
 
 			"encryption_passphrase": {

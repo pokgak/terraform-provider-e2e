@@ -23,10 +23,7 @@ description: |-
 ### Required
 
 - `project_id` (Number) ID of the project. It should be unique
-
-### Optional
-
-- `location` (String) Location of the block storage
+- `location` (String) Location of the security group
 
 ### Read-Only
 

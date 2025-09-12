@@ -645,6 +645,7 @@ func (c *Client) GetImage(imageId string, project_id string) (*models.ImageRespo
 	return &res, nil
 
 }
+
 func (c *Client) DeleteImage(imageId string, project_id string) error {
 	urlNode := c.Api_endpoint + "images/" + imageId + "/"
 	deleteBody := models.ImageDeleteBody{
@@ -656,7 +657,7 @@ func (c *Client) DeleteImage(imageId string, project_id string) error {
 	if err != nil {
 		return err
 	}
-
+	
 	params := req.URL.Query()
 	params.Add("apikey", c.Api_key)
 	params.Add("project_id", project_id)
