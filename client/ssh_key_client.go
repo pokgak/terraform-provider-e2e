@@ -218,6 +218,14 @@ func (c *Client) GetSshKeyByPk(pk string, project_id string, location string) (*
 		return nil, fmt.Errorf("SSH key with ID %s not found in response", pk)
 	}
 
-	return &data.Data[0], nil
+	for i := range data.Data {
+		if fmt.Sprintf("%d", data.Data[i].Pk) == pk {
+			log.Printf("[DEBUG] GetSshKeyByPk: Found matching SSH key with pk=%s, label=%s", pk, data.Data[i].Label)
+			return &data.Data[i], nil
+		}
+	}
+
+	log.Printf("[DEBUG] GetSshKeyByPk: SSH key with pk=%s not found among returned keys", pk)
+	return nil, fmt.Errorf("SSH key with ID %s not found", pk)
 }
 
