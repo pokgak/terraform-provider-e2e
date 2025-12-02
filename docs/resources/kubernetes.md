@@ -12,11 +12,12 @@ description: |-
 ## Example Usage
 ```hcl
  resource "e2e_kubernetes" "kubernetes1" {
-    name       = "kubernetes_cluster_v1"
-    version    = "1.30"  //Just an example
-    project_id = 30000   //Just an example
-    location   = "Delhi"
-    vpc_id     = "10001" //Just an example
+    name               = "kubernetes_cluster_v1"
+    version            = "1.30"  //Just an example
+    project_id         = 30000   //Just an example
+    location           = "Delhi"
+    vpc_id             = "10001" //Just an example
+    security_group_id  = 68231     //Just an example
 
     node_pools {
         name          = "node_pool_1"
@@ -98,6 +99,7 @@ description: |-
 - `project_id` (Number) ID of the project. It should be unique. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `version` (String) Version of the Kubernetes service.
 - `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
+- `security_group_id` (Number) The ID of the security group attached to the cluster.
 - `location` (String) Location of the block storage
 
 ### Read-Only

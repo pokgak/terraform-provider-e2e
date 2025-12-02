@@ -48,6 +48,11 @@ func ResourceKubernetesService() *schema.Resource {
 				Required:    true,
 				Description: "VPC ID of the Kubernetes service",
 			},
+			"security_group_id": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "The ID of the security group attached to the cluster",
+			},
 			"sku_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -311,9 +316,17 @@ func GetSlugName(ctx context.Context, d *schema.ResourceData, m interface{}) (st
 		return "", fmt.Errorf("error getting Kubernetes plans: %s", err.Error())
 	}
 	// Extract slug_name based on the version
-	data, ok := kubernetesPlan["data"].([]interface{})
+	log.Printf("[DEBUG] kubernetesPlan response: %+v", kubernetesPlan)
+
+	// The API returns nested data: data.data is the array of plans
+	dataWrapper, ok := kubernetesPlan["data"].(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("unexpected response format: missing 'data' field or not a list")
+		return "", fmt.Errorf("unexpected response format: 'data' field is not an object. Actual response: %+v", kubernetesPlan)
+	}
+
+	data, ok := dataWrapper["data"].([]interface{})
+	if !ok {
+		return "", fmt.Errorf("unexpected response format: nested 'data' field is not a list. Actual response: %+v", kubernetesPlan)
 	}
 	for _, plan := range data {
 		planData, ok := plan.(map[string]interface{})
@@ -344,11 +357,12 @@ func CreateKubernetesObject(m interface{}, d *schema.ResourceData, slugName stri
 	}
 	log.Printf("[INFO] KUBERNETES OBJECT CREATION STARTS")
 	kubernetesObj := models.KubernetesCreate{
-		Name:     d.Get("name").(string),
-		Version:  d.Get("version").(string),
-		VPCID:    d.Get("vpc_id").(string),
-		SKUID:    d.Get("sku_id").(string),
-		SlugName: slugName,
+		Name:            d.Get("name").(string),
+		Version:         d.Get("version").(string),
+		VPCID:           d.Get("vpc_id").(string),
+		SecurityGroupID: d.Get("security_group_id").(int),
+		SKUID:           d.Get("sku_id").(string),
+		SlugName:        slugName,
 	}
 	if nodePools, ok := d.GetOk("node_pools"); ok {
 		nodePoolList := nodePools.([]interface{})
