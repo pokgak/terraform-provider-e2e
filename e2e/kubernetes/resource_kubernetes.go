@@ -48,10 +48,13 @@ func ResourceKubernetesService() *schema.Resource {
 				Required:    true,
 				Description: "VPC ID of the Kubernetes service",
 			},
-			"security_group_id": {
-				Type:        schema.TypeInt,
+			"security_group_ids": {
+				Type:        schema.TypeList,
 				Required:    true,
-				Description: "The ID of the security group attached to the cluster",
+				Description: "List of security group IDs to attach to the cluster (at least one required, can be updated after creation)",
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
 			},
 			"subnet_id": {
 				Type:        schema.TypeString,
@@ -362,14 +365,26 @@ func CreateKubernetesObject(m interface{}, d *schema.ResourceData, slugName stri
 	}
 	log.Printf("[INFO] KUBERNETES OBJECT CREATION STARTS")
 	kubernetesObj := models.KubernetesCreate{
-		Name:            d.Get("name").(string),
-		Version:         d.Get("version").(string),
-		VPCID:           d.Get("vpc_id").(string),
-		SecurityGroupID: d.Get("security_group_id").(int),
-		SubnetID:        d.Get("subnet_id").(string),
-		SKUID:           d.Get("sku_id").(string),
-		SlugName:        slugName,
+		Name:     d.Get("name").(string),
+		Version:  d.Get("version").(string),
+		VPCID:    d.Get("vpc_id").(string),
+		SubnetID: d.Get("subnet_id").(string),
+		SKUID:    d.Get("sku_id").(string),
+		SlugName: slugName,
 	}
+
+	// Handle security_group_ids - at least one is required
+	if securityGroupsList, ok := d.GetOk("security_group_ids"); ok {
+		sgList := securityGroupsList.([]interface{})
+		if len(sgList) == 0 {
+			return nil, diag.Errorf("At least one security group ID is required")
+		}
+		// Set the first security group as the primary one (required by creation API)
+		kubernetesObj.SecurityGroupID = sgList[0].(int)
+	} else {
+		return nil, diag.Errorf("security_group_ids is required and must contain at least one security group ID")
+	}
+
 	if nodePools, ok := d.GetOk("node_pools"); ok {
 		nodePoolList := nodePools.([]interface{})
 		nodePoolsDetail, err := ExpandNodePools(nodePoolList, apiClient, d.Get("project_id").(int), d.Get("location").(string))
@@ -420,6 +435,24 @@ func resourceCreateKubernetesService(ctx context.Context, d *schema.ResourceData
 	}
 	d.SetId(clusterIDStr)
 	log.Printf("[INFO] Kubernetes Cluster creation | before setting fields")
+
+	// If there are multiple security groups, attach the remaining ones
+	if securityGroupsList, ok := d.GetOk("security_group_ids"); ok {
+		sgList := securityGroupsList.([]interface{})
+		if len(sgList) > 1 {
+			// Extract security group IDs starting from index 1 (skip the first one already attached)
+			additionalSGs := make([]int, len(sgList)-1)
+			for i := 1; i < len(sgList); i++ {
+				additionalSGs[i-1] = sgList[i].(int)
+			}
+			log.Printf("[INFO] Attaching additional security groups: %v", additionalSGs)
+			_, err := apiClient.AttachSecurityGroupsToKubernetes(clusterIDStr, additionalSGs, d.Get("project_id").(int), d.Get("location").(string))
+			if err != nil {
+				return diag.Errorf("Failed to attach additional security groups: %s", err.Error())
+			}
+		}
+	}
+
 	return diags
 
 }
@@ -497,6 +530,66 @@ func resourceUpdateKubernetesService(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	// Handle security_group_ids changes
+	if d.HasChange("security_group_ids") {
+		log.Printf("[INFO] Detected change in security_group_ids for Kubernetes Cluster %s", kubernetesId)
+
+		oldRaw, newRaw := d.GetChange("security_group_ids")
+		oldSGList := oldRaw.([]interface{})
+		newSGList := newRaw.([]interface{})
+
+		// Validate that at least one security group remains
+		if len(newSGList) == 0 {
+			return diag.Errorf("At least one security group must be attached to the cluster. Cannot remove all security groups.")
+		}
+
+		// Convert to int slices
+		oldSGs := make(map[int]bool)
+		for _, sg := range oldSGList {
+			oldSGs[sg.(int)] = true
+		}
+
+		newSGs := make(map[int]bool)
+		for _, sg := range newSGList {
+			newSGs[sg.(int)] = true
+		}
+
+		// Find security groups to attach (in new but not in old)
+		var toAttach []int
+		for sgID := range newSGs {
+			if !oldSGs[sgID] {
+				toAttach = append(toAttach, sgID)
+			}
+		}
+
+		// Find security groups to detach (in old but not in new)
+		var toDetach []int
+		for sgID := range oldSGs {
+			if !newSGs[sgID] {
+				toDetach = append(toDetach, sgID)
+			}
+		}
+
+		// Attach new security groups
+		if len(toAttach) > 0 {
+			log.Printf("[INFO] Attaching security groups %v to Kubernetes Cluster %s", toAttach, kubernetesId)
+			_, err := apiClient.AttachSecurityGroupsToKubernetes(kubernetesId, toAttach, d.Get("project_id").(int), d.Get("location").(string))
+			if err != nil {
+				return diag.Errorf("Failed to attach security groups: %s", err.Error())
+			}
+		}
+
+		// Detach removed security groups
+		if len(toDetach) > 0 {
+			log.Printf("[INFO] Detaching security groups %v from Kubernetes Cluster %s", toDetach, kubernetesId)
+			_, err := apiClient.DetachSecurityGroupsFromKubernetes(kubernetesId, toDetach, d.Get("project_id").(int), d.Get("location").(string))
+			if err != nil {
+				return diag.Errorf("Failed to detach security groups: %s", err.Error())
+			}
+		}
+	}
+
 	if d.HasChange("node_pools") {
 		oldData, newData := d.GetChange("node_pools")
 

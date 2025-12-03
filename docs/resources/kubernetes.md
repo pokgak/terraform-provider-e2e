@@ -12,13 +12,13 @@ description: |-
 ## Example Usage
 ```hcl
  resource "e2e_kubernetes" "kubernetes1" {
-    name               = "kubernetes_cluster_v1"
-    version            = "1.30"  //Just an example
-    project_id         = 30000   //Just an example
-    location           = "Delhi"
-    vpc_id             = "10001" //Just an example
-    security_group_id  = 12345   //Just an example
-    subnet_id          = "12345" //Optional, only for custom VPC
+    name                = "kubernetes_cluster_v1"
+    version             = "1.30"  //Just an example
+    project_id          = 30000   //Just an example
+    location            = "Delhi"
+    vpc_id              = "10001" //Just an example
+    security_group_ids  = [682, 683, 684]  //List of security group IDs
+    subnet_id           = "12345" //Optional, only for custom VPC
 
     node_pools {
         name          = "node_pool_1"
@@ -100,7 +100,7 @@ description: |-
 - `project_id` (Number) ID of the project. It should be unique. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `version` (String) Version of the Kubernetes service.
 - `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
-- `security_group_id` (Number) The ID of the security group attached to the cluster.
+- `security_group_ids` (List of Numbers) List of security group IDs to attach to the cluster. At least one security group is required. Can be updated after creation to attach/detach security groups. To find the security group id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/security_group/get)
 - `location` (String) Location of the block storage
 
 ### Optional
