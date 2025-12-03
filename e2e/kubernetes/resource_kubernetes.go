@@ -483,6 +483,31 @@ func resourceReadKubernetesService(ctx context.Context, d *schema.ResourceData, 
 	d.Set("status", data["state"].(string))
 	d.Set("version", data["version"].(string))
 	d.Set("created_at", data["created_at"].(string))
+
+	// Fetch and set security_group_ids
+	masterNodeIDFloat, ok := data["master_node_id"].(float64)
+	if ok {
+		masterNodeID := fmt.Sprintf("%.0f", masterNodeIDFloat)
+		log.Printf("[INFO] Fetching security groups for master node %s", masterNodeID)
+
+		sgResponse, err := apiClient.GetNodeSecurityGroups(masterNodeID, d.Get("project_id").(int), location)
+		if err != nil {
+			log.Printf("[WARN] Failed to fetch security groups for node %s: %s", masterNodeID, err.Error())
+		} else if sgData, ok := sgResponse["data"].([]interface{}); ok {
+			// Extract security group IDs from the response
+			var securityGroupIDs []int
+			for _, sg := range sgData {
+				if sgMap, ok := sg.(map[string]interface{}); ok {
+					if sgIDFloat, ok := sgMap["id"].(float64); ok {
+						securityGroupIDs = append(securityGroupIDs, int(sgIDFloat))
+					}
+				}
+			}
+			log.Printf("[INFO] Setting security_group_ids: %v", securityGroupIDs)
+			d.Set("security_group_ids", securityGroupIDs)
+		}
+	}
+
 	return diags
 }
 
