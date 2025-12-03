@@ -51,11 +51,13 @@ func ResourceKubernetesService() *schema.Resource {
 			"security_group_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Description: "List of security group IDs to attach to the cluster (at least one required, can be updated after creation)",
+				MinItems:    1,
+				Description: "List of security group IDs to attach to the cluster (must contain at least one ID)",
 				Elem: &schema.Schema{
 					Type: schema.TypeInt,
 				},
 			},
+
 			"subnet_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
