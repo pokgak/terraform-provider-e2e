@@ -53,6 +53,11 @@ func ResourceKubernetesService() *schema.Resource {
 				Required:    true,
 				Description: "The ID of the security group attached to the cluster",
 			},
+			"subnet_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Subnet ID of the custom VPC (applicable only if a custom VPC is used)",
+			},
 			"sku_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -361,6 +366,7 @@ func CreateKubernetesObject(m interface{}, d *schema.ResourceData, slugName stri
 		Version:         d.Get("version").(string),
 		VPCID:           d.Get("vpc_id").(string),
 		SecurityGroupID: d.Get("security_group_id").(int),
+		SubnetID:        d.Get("subnet_id").(string),
 		SKUID:           d.Get("sku_id").(string),
 		SlugName:        slugName,
 	}

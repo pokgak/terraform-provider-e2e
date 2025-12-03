@@ -17,7 +17,8 @@ description: |-
     project_id         = 30000   //Just an example
     location           = "Delhi"
     vpc_id             = "10001" //Just an example
-    security_group_id  = 68231     //Just an example
+    security_group_id  = 12345   //Just an example
+    subnet_id          = "12345" //Optional, only for custom VPC
 
     node_pools {
         name          = "node_pool_1"
@@ -101,6 +102,10 @@ description: |-
 - `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
 - `security_group_id` (Number) The ID of the security group attached to the cluster.
 - `location` (String) Location of the block storage
+
+### Optional
+
+- `subnet_id` (String) Subnet ID of the custom VPC (applicable only if a custom VPC is used).
 
 ### Read-Only
 

@@ -58,6 +58,7 @@ type KubernetesCreate struct {
 	Version         string     `json:"version"`
 	VPCID           string     `json:"vpc_id"`
 	SecurityGroupID int        `json:"security_group_id"`
+	SubnetID        string     `json:"subnet_id,omitempty"`
 	SKUID           string     `json:"sku_id"`
 	NodePools       []NodePool `json:"node_pools"`
 }
