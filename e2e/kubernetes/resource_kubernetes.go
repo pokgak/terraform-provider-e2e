@@ -436,24 +436,7 @@ func resourceCreateKubernetesService(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Failed to parse 'ID' field in the 'DOCUMENT'")
 	}
 	d.SetId(clusterIDStr)
-	log.Printf("[INFO] Kubernetes Cluster creation | before setting fields")
-
-	// If there are multiple security groups, attach the remaining ones
-	if securityGroupsList, ok := d.GetOk("security_group_ids"); ok {
-		sgList := securityGroupsList.([]interface{})
-		if len(sgList) > 1 {
-			// Extract security group IDs starting from index 1 (skip the first one already attached)
-			additionalSGs := make([]int, len(sgList)-1)
-			for i := 1; i < len(sgList); i++ {
-				additionalSGs[i-1] = sgList[i].(int)
-			}
-			log.Printf("[INFO] Attaching additional security groups: %v", additionalSGs)
-			_, err := apiClient.AttachSecurityGroupsToKubernetes(clusterIDStr, additionalSGs, d.Get("project_id").(int), d.Get("location").(string))
-			if err != nil {
-				return diag.Errorf("Failed to attach additional security groups: %s", err.Error())
-			}
-		}
-	}
+	log.Printf("[INFO] Kubernetes Cluster created successfully with ID: %s", clusterIDStr)
 
 	return diags
 
