@@ -100,7 +100,7 @@ description: |-
 - `project_id` (Number) ID of the project. It should be unique. To find the project id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/pbac-projects-header/get)
 - `version` (String) Version of the Kubernetes service.
 - `vpc_id` (String) VPC ID of the Kubernetes service. To find the vpc id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/vpc-list/get)
-- `security_group_ids` (List of Numbers) List of security group IDs to attach to the cluster. At least one security group is required. Can be updated after creation to attach/detach security groups. To find the security group id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/security_group/get)
+- `security_group_ids` (List of Numbers) List of security group IDs to attach to the cluster. At least one security group is required. Can be updated after creation to attach/detach security groups.Attach one security group at time of creation. To find the security group id, please refer to our [`API Documentation`](https://docs.e2enetworks.com/api/myaccount/#/paths/security_group/get)
 - `location` (String) Location of the block storage
 
 ### Optional
