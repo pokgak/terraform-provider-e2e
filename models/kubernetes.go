@@ -53,12 +53,14 @@ type NodePool struct {
 }
 
 type KubernetesCreate struct {
-	Name      string     `json:"name"`
-	SlugName  string     `json:"slug_name"`
-	Version   string     `json:"version"`
-	VPCID     string     `json:"vpc_id"`
-	SKUID     string     `json:"sku_id"`
-	NodePools []NodePool `json:"node_pools"`
+	Name            string     `json:"name"`
+	SlugName        string     `json:"slug_name"`
+	Version         string     `json:"version"`
+	VPCID           string     `json:"vpc_id"`
+	SecurityGroupID int        `json:"security_group_id"`
+	SubnetID        string     `json:"subnet_id,omitempty"`
+	SKUID           string     `json:"sku_id"`
+	NodePools       []NodePool `json:"node_pools"`
 }
 
 type NodePoolUpdate struct {

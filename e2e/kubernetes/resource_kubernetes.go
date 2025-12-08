@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceKubernetesService() *schema.Resource {
@@ -47,6 +47,21 @@ func ResourceKubernetesService() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "VPC ID of the Kubernetes service",
+			},
+			"security_group_ids": {
+				Type:        schema.TypeList,
+				Required:    true,
+				MinItems:    1,
+				Description: "List of security group IDs to attach to the cluster (must contain at least one ID)",
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
+
+			"subnet_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Subnet ID of the custom VPC (applicable only if a custom VPC is used)",
 			},
 			"sku_id": {
 				Type:        schema.TypeString,
@@ -296,7 +311,7 @@ func ResourceKubernetesService() *schema.Resource {
 		DeleteContext: resourceDeleteKubernetesService,
 		Exists:        resourceExistsKubernetesService,
 		Importer: &schema.ResourceImporter{
-			State: node.CustomImportStateFunc,
+			State: KubernetesImportStateFunc,
 		},
 	}
 }
@@ -311,9 +326,17 @@ func GetSlugName(ctx context.Context, d *schema.ResourceData, m interface{}) (st
 		return "", fmt.Errorf("error getting Kubernetes plans: %s", err.Error())
 	}
 	// Extract slug_name based on the version
-	data, ok := kubernetesPlan["data"].([]interface{})
+	log.Printf("[DEBUG] kubernetesPlan response: %+v", kubernetesPlan)
+
+	// The API returns nested data: data.data is the array of plans
+	dataWrapper, ok := kubernetesPlan["data"].(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("unexpected response format: missing 'data' field or not a list")
+		return "", fmt.Errorf("unexpected response format: 'data' field is not an object. Actual response: %+v", kubernetesPlan)
+	}
+
+	data, ok := dataWrapper["data"].([]interface{})
+	if !ok {
+		return "", fmt.Errorf("unexpected response format: nested 'data' field is not a list. Actual response: %+v", kubernetesPlan)
 	}
 	for _, plan := range data {
 		planData, ok := plan.(map[string]interface{})
@@ -347,9 +370,24 @@ func CreateKubernetesObject(m interface{}, d *schema.ResourceData, slugName stri
 		Name:     d.Get("name").(string),
 		Version:  d.Get("version").(string),
 		VPCID:    d.Get("vpc_id").(string),
+		SubnetID: d.Get("subnet_id").(string),
 		SKUID:    d.Get("sku_id").(string),
 		SlugName: slugName,
 	}
+
+	// Handle security_group_ids - at least one is required
+	if securityGroupsList, ok := d.GetOk("security_group_ids"); ok {
+		sgList := securityGroupsList.([]interface{})
+		if len(sgList) == 0 {
+			return nil, diag.Errorf("At least one security group ID is required")
+		}
+		// Set the first security group as the primary one (required by creation API)
+		kubernetesObj.SecurityGroupID = sgList[0].(int)
+		d.Set("security_group_ids", []int{sgList[0].(int)})
+	} else {
+		return nil, diag.Errorf("security_group_ids is required and must contain at least one security group ID")
+	}
+
 	if nodePools, ok := d.GetOk("node_pools"); ok {
 		nodePoolList := nodePools.([]interface{})
 		nodePoolsDetail, err := ExpandNodePools(nodePoolList, apiClient, d.Get("project_id").(int), d.Get("location").(string))
@@ -399,7 +437,8 @@ func resourceCreateKubernetesService(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Failed to parse 'ID' field in the 'DOCUMENT'")
 	}
 	d.SetId(clusterIDStr)
-	log.Printf("[INFO] Kubernetes Cluster creation | before setting fields")
+	log.Printf("[INFO] Kubernetes Cluster created successfully with ID: %s", clusterIDStr)
+
 	return diags
 
 }
@@ -430,6 +469,31 @@ func resourceReadKubernetesService(ctx context.Context, d *schema.ResourceData, 
 	d.Set("status", data["state"].(string))
 	d.Set("version", data["version"].(string))
 	d.Set("created_at", data["created_at"].(string))
+
+	// Fetch and set security_group_ids from master node
+	masterVMID := getMasterNodeVMID(data)
+	if masterVMID == "" {
+		log.Printf("[WARN] Could not find master VM ID in roles")
+		return diags
+	}
+
+	log.Printf("[INFO] Fetching security groups for VM %s", masterVMID)
+	sgResponse, err := apiClient.GetNodeSecurityGroups(masterVMID, d.Get("project_id").(int), location)
+	if err != nil {
+		log.Printf("[WARN] Failed to fetch security groups: %s", err.Error())
+	} else if sgData, ok := sgResponse["data"].([]interface{}); ok {
+		var securityGroupIDs []int
+		for _, sg := range sgData {
+			if sgMap, ok := sg.(map[string]interface{}); ok {
+				if sgID, ok := sgMap["id"].(float64); ok {
+					securityGroupIDs = append(securityGroupIDs, int(sgID))
+				}
+			}
+		}
+		log.Printf("[INFO] Setting security_group_ids: %v", securityGroupIDs)
+		d.Set("security_group_ids", securityGroupIDs)
+	}
+
 	return diags
 }
 
@@ -477,6 +541,66 @@ func resourceUpdateKubernetesService(ctx context.Context, d *schema.ResourceData
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	// Handle security_group_ids changes
+	if d.HasChange("security_group_ids") {
+		log.Printf("[INFO] Detected change in security_group_ids for Kubernetes Cluster %s", kubernetesId)
+
+		oldRaw, newRaw := d.GetChange("security_group_ids")
+		oldSGList := oldRaw.([]interface{})
+		newSGList := newRaw.([]interface{})
+
+		// Validate that at least one security group remains
+		if len(newSGList) == 0 {
+			return diag.Errorf("At least one security group must be attached to the cluster. Cannot remove all security groups.")
+		}
+
+		// Convert to int slices
+		oldSGs := make(map[int]bool)
+		for _, sg := range oldSGList {
+			oldSGs[sg.(int)] = true
+		}
+
+		newSGs := make(map[int]bool)
+		for _, sg := range newSGList {
+			newSGs[sg.(int)] = true
+		}
+
+		// Find security groups to attach (in new but not in old)
+		var toAttach []int
+		for sgID := range newSGs {
+			if !oldSGs[sgID] {
+				toAttach = append(toAttach, sgID)
+			}
+		}
+
+		// Find security groups to detach (in old but not in new)
+		var toDetach []int
+		for sgID := range oldSGs {
+			if !newSGs[sgID] {
+				toDetach = append(toDetach, sgID)
+			}
+		}
+
+		// Attach new security groups
+		if len(toAttach) > 0 {
+			log.Printf("[INFO] Attaching security groups %v to Kubernetes Cluster %s", toAttach, kubernetesId)
+			_, err := apiClient.AttachSecurityGroupsToKubernetes(kubernetesId, toAttach, d.Get("project_id").(int), d.Get("location").(string))
+			if err != nil {
+				return diag.Errorf("Failed to attach security groups: %s", err.Error())
+			}
+		}
+
+		// Detach removed security groups
+		if len(toDetach) > 0 {
+			log.Printf("[INFO] Detaching security groups %v from Kubernetes Cluster %s", toDetach, kubernetesId)
+			_, err := apiClient.DetachSecurityGroupsFromKubernetes(kubernetesId, toDetach, d.Get("project_id").(int), d.Get("location").(string))
+			if err != nil {
+				return diag.Errorf("Failed to detach security groups: %s", err.Error())
+			}
+		}
+	}
+
 	if d.HasChange("node_pools") {
 		oldData, newData := d.GetChange("node_pools")
 
@@ -657,3 +781,52 @@ func IsNodePoolRunning(oldServiceID float64, nodePools []interface{}) bool {
 	}
 	return false
 }
+
+// getMasterNodeVMID extracts the master node VM ID 
+func getMasterNodeVMID(data map[string]interface{}) string {
+	roles, ok := data["roles"].([]interface{})
+	if !ok || len(roles) == 0 {
+		return ""
+	}
+
+	for _, role := range roles {
+		roleMap, ok := role.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		if roleMap["role_name"] == "master" {
+			nodeList, ok := roleMap["node_id_list"].([]interface{})
+			if ok && len(nodeList) > 0 {
+				if vmID, ok := nodeList[0].(float64); ok {
+					return fmt.Sprintf("%.0f", vmID)
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// KubernetesImportStateFunc handles import for Kubernetes resources
+func KubernetesImportStateFunc(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid ID format: expected project_id/location/cluster_id")
+	}
+
+	projectIDStr := parts[0]
+	location := parts[1]
+	clusterID := parts[2]
+
+	projectIDInt, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid project_id: must be numeric")
+	}
+
+	d.Set("project_id", projectIDInt)
+	d.Set("location", location)
+	d.SetId(clusterID)
+
+	return []*schema.ResourceData{d}, nil
+}
+

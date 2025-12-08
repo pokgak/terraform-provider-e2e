@@ -124,8 +124,9 @@ func (c *Client) GetKubernetesServiceInfo(kubernetesID string, location string, 
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[INFO] CLIENT | KUBERNETES READ")
+	log.Printf("[INFO] CLIENT | KUBERNETES READ | URL: %s", urlKubernetes)
 	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	log.Printf("[INFO] CLIENT | KUBERNETES READ | Full URL with params: %s", req.URL.String())
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -436,6 +437,102 @@ func (c *Client) CheckNodePoolStatus(kubernetes_id string, project_id int, locat
 
 	if err != nil {
 		log.Printf("[ERROR] CLIENT READ KUBERNETES NODE POOLS | error when unmarshalling")
+		return nil, err
+	}
+
+	return jsonRes, nil
+}
+
+func (c *Client) AttachSecurityGroupsToKubernetes(kubernetesClusterID string, securityGroupIDs []int, project_id int, location string) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"security_group_ids": securityGroupIDs,
+	}
+
+	buf := bytes.Buffer{}
+	err := json.NewEncoder(&buf).Encode(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	urlKubernetes := c.Api_endpoint + "kubernetes/attach-security-group/" + kubernetesClusterID + "/"
+	log.Printf("[INFO] CLIENT | ATTACH SECURITY GROUPS TO KUBERNETES CLUSTER %s", kubernetesClusterID)
+	log.Printf("[DEBUG] CLIENT | ATTACH URL: %s", urlKubernetes)
+	log.Printf("[DEBUG] CLIENT | ATTACH PAYLOAD: %v", payload)
+
+	req, err := http.NewRequest("POST", urlKubernetes, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
+	response, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CheckResponseStatus(response)
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+	resBody, _ := ioutil.ReadAll(response.Body)
+	stringresponse := string(resBody)
+	log.Printf("[DEBUG] CLIENT | ATTACH SECURITY GROUPS RESPONSE STATUS: %d", response.StatusCode)
+	log.Printf("[DEBUG] CLIENT | ATTACH SECURITY GROUPS RESPONSE BODY: %s", stringresponse)
+	resBytes := []byte(stringresponse)
+	var jsonRes map[string]interface{}
+	err = json.Unmarshal(resBytes, &jsonRes)
+
+	if err != nil {
+		log.Printf("[ERROR] CLIENT ATTACH SECURITY GROUPS TO KUBERNETES | error when unmarshalling. Response: %s", stringresponse)
+		return nil, fmt.Errorf("failed to unmarshal response (status %d): %w. Response body: %s", response.StatusCode, err, stringresponse)
+	}
+
+	return jsonRes, nil
+}
+
+func (c *Client) DetachSecurityGroupsFromKubernetes(kubernetesClusterID string, securityGroupIDs []int, project_id int, location string) (map[string]interface{}, error) {
+	payload := map[string]interface{}{
+		"security_group_ids": securityGroupIDs,
+	}
+
+	buf := bytes.Buffer{}
+	err := json.NewEncoder(&buf).Encode(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	urlKubernetes := c.Api_endpoint + "kubernetes/detach-security-group/" + kubernetesClusterID + "/"
+	req, err := http.NewRequest("POST", urlKubernetes, &buf)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[INFO] CLIENT | DETACH SECURITY GROUPS FROM KUBERNETES CLUSTER %s", kubernetesClusterID)
+	log.Printf("[DEBUG] CLIENT | DETACH URL: %s", urlKubernetes)
+	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+
+	response, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CheckResponseStatus(response)
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+	resBody, _ := ioutil.ReadAll(response.Body)
+	stringresponse := string(resBody)
+	resBytes := []byte(stringresponse)
+	var jsonRes map[string]interface{}
+	err = json.Unmarshal(resBytes, &jsonRes)
+
+	if err != nil {
+		log.Printf("[ERROR] CLIENT DETACH SECURITY GROUPS FROM KUBERNETES | error when unmarshalling")
 		return nil, err
 	}
 
