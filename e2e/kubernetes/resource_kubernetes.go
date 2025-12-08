@@ -383,6 +383,7 @@ func CreateKubernetesObject(m interface{}, d *schema.ResourceData, slugName stri
 		}
 		// Set the first security group as the primary one (required by creation API)
 		kubernetesObj.SecurityGroupID = sgList[0].(int)
+		d.Set("security_group_ids", []int{sgList[0].(int)})
 	} else {
 		return nil, diag.Errorf("security_group_ids is required and must contain at least one security group ID")
 	}
