@@ -124,8 +124,9 @@ func (c *Client) GetKubernetesServiceInfo(kubernetesID string, location string, 
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[INFO] CLIENT | KUBERNETES READ")
+	log.Printf("[INFO] CLIENT | KUBERNETES READ | URL: %s", urlKubernetes)
 	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
+	log.Printf("[INFO] CLIENT | KUBERNETES READ | Full URL with params: %s", req.URL.String())
 	response, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/e2eterraformprovider/terraform-provider-e2e/client"
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/e2eterraformprovider/terraform-provider-e2e/e2e/node"
 )
 
 func ResourceKubernetesService() *schema.Resource {
@@ -311,7 +311,7 @@ func ResourceKubernetesService() *schema.Resource {
 		DeleteContext: resourceDeleteKubernetesService,
 		Exists:        resourceExistsKubernetesService,
 		Importer: &schema.ResourceImporter{
-			State: node.CustomImportStateFunc,
+			State: KubernetesImportStateFunc,
 		},
 	}
 }
@@ -469,28 +469,28 @@ func resourceReadKubernetesService(ctx context.Context, d *schema.ResourceData, 
 	d.Set("version", data["version"].(string))
 	d.Set("created_at", data["created_at"].(string))
 
-	// Fetch and set security_group_ids
-	masterNodeIDFloat, ok := data["master_node_id"].(float64)
-	if ok {
-		masterNodeID := fmt.Sprintf("%.0f", masterNodeIDFloat)
-		log.Printf("[INFO] Fetching security groups for master node %s", masterNodeID)
+	// Fetch and set security_group_ids from master node
+	masterVMID := getMasterNodeVMID(data)
+	if masterVMID == "" {
+		log.Printf("[WARN] Could not find master VM ID in roles")
+		return diags
+	}
 
-		sgResponse, err := apiClient.GetNodeSecurityGroups(masterNodeID, d.Get("project_id").(int), location)
-		if err != nil {
-			log.Printf("[WARN] Failed to fetch security groups for node %s: %s", masterNodeID, err.Error())
-		} else if sgData, ok := sgResponse["data"].([]interface{}); ok {
-			// Extract security group IDs from the response
-			var securityGroupIDs []int
-			for _, sg := range sgData {
-				if sgMap, ok := sg.(map[string]interface{}); ok {
-					if sgIDFloat, ok := sgMap["id"].(float64); ok {
-						securityGroupIDs = append(securityGroupIDs, int(sgIDFloat))
-					}
+	log.Printf("[INFO] Fetching security groups for VM %s", masterVMID)
+	sgResponse, err := apiClient.GetNodeSecurityGroups(masterVMID, d.Get("project_id").(int), location)
+	if err != nil {
+		log.Printf("[WARN] Failed to fetch security groups: %s", err.Error())
+	} else if sgData, ok := sgResponse["data"].([]interface{}); ok {
+		var securityGroupIDs []int
+		for _, sg := range sgData {
+			if sgMap, ok := sg.(map[string]interface{}); ok {
+				if sgID, ok := sgMap["id"].(float64); ok {
+					securityGroupIDs = append(securityGroupIDs, int(sgID))
 				}
 			}
-			log.Printf("[INFO] Setting security_group_ids: %v", securityGroupIDs)
-			d.Set("security_group_ids", securityGroupIDs)
 		}
+		log.Printf("[INFO] Setting security_group_ids: %v", securityGroupIDs)
+		d.Set("security_group_ids", securityGroupIDs)
 	}
 
 	return diags
@@ -780,3 +780,52 @@ func IsNodePoolRunning(oldServiceID float64, nodePools []interface{}) bool {
 	}
 	return false
 }
+
+// getMasterNodeVMID extracts the master node VM ID 
+func getMasterNodeVMID(data map[string]interface{}) string {
+	roles, ok := data["roles"].([]interface{})
+	if !ok || len(roles) == 0 {
+		return ""
+	}
+
+	for _, role := range roles {
+		roleMap, ok := role.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		if roleMap["role_name"] == "master" {
+			nodeList, ok := roleMap["node_id_list"].([]interface{})
+			if ok && len(nodeList) > 0 {
+				if vmID, ok := nodeList[0].(float64); ok {
+					return fmt.Sprintf("%.0f", vmID)
+				}
+			}
+		}
+	}
+	return ""
+}
+
+// KubernetesImportStateFunc handles import for Kubernetes resources
+func KubernetesImportStateFunc(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("invalid ID format: expected project_id/location/cluster_id")
+	}
+
+	projectIDStr := parts[0]
+	location := parts[1]
+	clusterID := parts[2]
+
+	projectIDInt, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid project_id: must be numeric")
+	}
+
+	d.Set("project_id", projectIDInt)
+	d.Set("location", location)
+	d.SetId(clusterID)
+
+	return []*schema.ResourceData{d}, nil
+}
+
