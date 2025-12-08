@@ -347,14 +347,14 @@ func (c *Client) DeleteNode(nodeId string, project_id string, location string) e
 	return nil
 }
 
-func (c *Client) GetNodeSecurityGroups(nodeID string, project_id int, location string) (map[string]interface{}, error) {
-	urlSecurityGroups := c.Api_endpoint + "security_group/" + nodeID + "/attach/"
+func (c *Client) GetNodeSecurityGroups(vmID string, project_id int, location string) (map[string]interface{}, error) {
+	urlSecurityGroups := c.Api_endpoint + "security_group/" + vmID + "/attach/"
 	req, err := http.NewRequest("GET", urlSecurityGroups, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("[INFO] CLIENT | GET SECURITY GROUPS FOR NODE %s", nodeID)
+	log.Printf("[INFO] CLIENT | GET SECURITY GROUPS FOR VM %s", vmID)
 	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
 
 	response, err := c.HttpClient.Do(req)
