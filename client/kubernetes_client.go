@@ -537,38 +537,3 @@ func (c *Client) DetachSecurityGroupsFromKubernetes(kubernetesClusterID string, 
 
 	return jsonRes, nil
 }
-
-func (c *Client) GetNodeSecurityGroups(nodeID string, project_id int, location string) (map[string]interface{}, error) {
-	urlSecurityGroups := c.Api_endpoint + "security_group/" + nodeID + "/attach/"
-	req, err := http.NewRequest("GET", urlSecurityGroups, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("[INFO] CLIENT | GET SECURITY GROUPS FOR NODE %s", nodeID)
-	addParamsAndHeaders(req, c.Api_key, c.Auth_token, project_id, location)
-
-	response, err := c.HttpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	err = CheckResponseStatus(response)
-	if err != nil {
-		return nil, err
-	}
-
-	defer response.Body.Close()
-	resBody, _ := ioutil.ReadAll(response.Body)
-	stringresponse := string(resBody)
-	resBytes := []byte(stringresponse)
-	var jsonRes map[string]interface{}
-	err = json.Unmarshal(resBytes, &jsonRes)
-
-	if err != nil {
-		log.Printf("[ERROR] CLIENT GET NODE SECURITY GROUPS | error when unmarshalling")
-		return nil, err
-	}
-
-	return jsonRes, nil
-}
