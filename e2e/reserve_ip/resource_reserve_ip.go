@@ -187,7 +187,9 @@ func resourceReadReserveIP(ctx context.Context, d *schema.ResourceData, m interf
 	log.Printf("[INFO] FILTER DATA | %+v %T", data, data)
 
 	if data.IPAddress == "" {
-		return diag.Errorf("Cannot find reserve_ip with address : %s", reserveId)
+		log.Printf("[WARN] ReserveIP READ | reserve_ip with address %s not found, removing from state", reserveId)
+		d.SetId("")
+		return diags
 	} else {
 		d.SetId(strconv.Itoa(int(math.Round(data.ReserveID))))
 		log.Printf("[INFO] ReserveIP READ | BEFORE SETTING DATA %+v, %v, %T =======================", data, data.Status, data.Status)
